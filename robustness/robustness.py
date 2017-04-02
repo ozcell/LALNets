@@ -11,14 +11,8 @@ seleceted seed of random generator.
 from __future__ import print_function
 
 from keras.datasets import mnist
-from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation, Flatten, Layer
-from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.optimizers import SGD
 from keras.utils import np_utils
-from keras.constraints import maxnorm
-from keras import backend as K
-from keras.layers.normalization import BatchNormalization
 from sklearn import svm, metrics
 
 import scipy as sc
