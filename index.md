@@ -1,6 +1,8 @@
-## Welcome to GitHub Pages
+## Welcome to Ozsel Kilinc's Ph.D. Work Page
 
-You can use the [editor on GitHub](https://github.com/ozcell/phdwork/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
+Please use the links below to reach the notebook of each project.
+
+[Robustness](https://github.com/ozcell/phdwork/Robustness/notebook.html)
 
 Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
