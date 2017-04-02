@@ -1,4 +1,4 @@
-## Welcome to Ozsel Kilinc's Ph.D. Work Page
+# Welcome to Ozsel Kilinc's Ph.D. Work Page
 
 Please use the links below to reach the notebook of each project.
 
