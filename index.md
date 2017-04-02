@@ -2,7 +2,7 @@
 
 Please use the links below to reach the notebook of each project.
 
-[Robustness](http://github.com/ozcell/phdwork/robustness.md)
+[Robustness](robustness.md)
 
 Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
