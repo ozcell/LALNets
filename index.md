@@ -2,9 +2,13 @@
 
 Please use the links below to reach the notebook of each project.
 
-[Robustness](robustness.md)
+### Clustering-based Source-aware Assessment of True Robustness for Learning Models
+[notebook](robustness.md) 
+[paper] Will be available soon
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+### Deep Clustering using Auto-Clustering Output Layer
+[paper](https://arxiv.org/pdf/1702.08648.pdf)
+[notebook] Will be available soon
 
 ### Markdown
 
