@@ -66,9 +66,9 @@ sgd = SGD(lr=0.01, decay=1e-6, momentum=0.95, nesterov=True)
 #select which clustering scheme to use
 ACOL_clusters = True
 if ACOL_clusters:
-    est = np.load('./robust_validation_est.npy')
+    est = np.load('./files/robust_validation_est.npy')
 else:
-    est = np.load('./robust_validation_est_kmeans.npy')
+    est = np.load('./files/robust_validation_est_kmeans.npy')
 
 #concatenate existing partition
 X_all = np.concatenate((X_train,X_test), axis=0)
