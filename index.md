@@ -5,7 +5,7 @@ Please use the links below to reach the notebook of each project.
 ### Clustering-based Source-aware Assessment of True Robustness for Learning Models
 Paper will be available soon
 
-[Notebook to generate the illustrations in the paper](robustness.md)
+[Notebook to generate the illustrations in the paper](phdwork/phdwork/robustness/notebook.md)
 
 [Codes](http://github.com/ozcell/phdwork/tree/master/phdwork/robustness)
 
