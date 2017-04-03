@@ -11,11 +11,13 @@ import matplotlib.cm as cm
 import matplotlib.gridspec as gridspec
 import seaborn as sns
 
+from phdwork.commons.utils import plot_class_means
+from phdwork.robustness.metrics import robustness_constant
 
 np.random.seed(1337)  # for reproducibility
 %matplotlib inline
 
-from cycler import cycler
+from cycler import cycler 
 
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
@@ -45,42 +47,13 @@ rc('axes', prop_cycle=cycler('color', [cm.Set1(i) for i in a]))
 
 b=np.linspace(0.00, 1, 10)
 
-def plot_class_means(nb_classes, nb_clusters, est, test, cmap, boundary, ax=None):
-    if ax is None:
-        ax = plt.gca()
+fontsize = None
 
-    n,h,w,d = test.shape
-
-    img = np.zeros((h*nb_clusters,w*nb_classes))
-    imgSorted = np.zeros_like(img)
-    ind = np.zeros((nb_clusters, nb_classes))
-    for i in range(nb_clusters):
-        for j in range(nb_classes):
-            a = test[boundary,:][est[boundary]==j+nb_classes*i]
-            b = a.shape[0]
-            if b == 0:
-                a = np.zeros((h,w))
-            else:
-                a = a.mean(axis=0).reshape(h,w)
-            ind[i,j] = b
-            img[i*h:(i+1)*h,j*w:(j+1)*w] = a
-
-    for i in range(nb_clusters):
-        for j in range(nb_classes):
-            k = ind.argsort(axis=0)[::-1][i,j]
-            imgSorted[i*h:(i+1)*h,j*w:(j+1)*w] = img[k*h:(k+1)*h,j*w:(j+1)*w]
-
-    fig = ax.imshow(imgSorted,cmap=cmap, interpolation='bicubic')
-
-    ax.axis('off')
-    ax.grid('off')
-
-
-    return fig
-
-def robustness_constant(acc1, acc2):
-    return 1-np.abs(acc1-acc2)/acc1
+sns.set(context='talk',style='darkgrid', palette='Set1', font_scale=1, rc=plt.rcParams)
 ```
+
+    Using Theano backend.
+
 
 
 ```python
@@ -108,12 +81,9 @@ Y_train = np_utils.to_categorical(y_train, nb_classes)
 Y_test = np_utils.to_categorical(y_test, nb_classes)
 ```
 
-    Using Theano backend.
-
-
 
 ```python
-main_loc = "/Users/ozsel/git/phdwork/Robustness/files/"
+main_loc = "/Users/ozsel/git/phdwork/phdwork/robustness/files/"
 
 exc_cnn_all = np.zeros((7,3,100))
 k = 0
@@ -123,7 +93,7 @@ for i in [100,300, 1000, 3000, 10000, 30000, 60000]:
         foo = np.load(load_loc1)[:,3,:].max(axis=1)
         exc_cnn_all[k,j-1,:] = foo[np.random.permutation(foo.shape[0])][0:100]
     k += 1
-
+    
 inc_cnn_all  = np.zeros((7,3,100))
 k = 0
 for i in [100,300, 1000, 3000, 10000, 30000, 60000]:
@@ -132,7 +102,7 @@ for i in [100,300, 1000, 3000, 10000, 30000, 60000]:
         foo = np.load(load_loc1)[:,3,:].max(axis=1)
         inc_cnn_all[k,j-1,:] = foo[np.random.permutation(foo.shape[0])][0:100]
     k += 1
-
+    
 exc_full  = np.zeros((5,100))
 exc_full[0,:] = np.load(main_loc + 'SVM/acc_x_60000.npy')
 exc_full[1,:] = np.load(main_loc + 'MLP/acc_x_60000.npy')[:,3,:].max(axis=1)
@@ -168,15 +138,15 @@ for i in [100,300, 1000, 3000, 10000, 30000, 60000]:
     load_loc1 = main_loc + 'CNN' + str(j) + '/class_acc_x_' + str(i) + '.npy'
     exc_class_cnn[k,:,:] = np.load(load_loc1)
     k += 1
-
-
+    
+    
 inc_class_cnn = np.zeros((7,100,10))
 k = 0
 for i in [100,300, 1000, 3000, 10000, 30000, 60000]:
     load_loc1 = main_loc + 'CNN' + str(j) + '/class_acc_i_' + str(i) + '.npy'
     inc_class_cnn[k,:,:] = np.load(load_loc1)[0:100,:]
     k += 1
-
+    
 inc_class_cnn[inc_class_cnn==0]=np.nan
 exc_class_cnn[exc_class_cnn==0]=np.nan
 
@@ -195,40 +165,40 @@ overwrite = False
 ```python
 fig = plt.figure(figsize=(16,8))
 ax1 = fig.add_subplot(111)
-plot_class_means(10,5,est, np.concatenate((X_train,X_test),axis=0) ,cm.jet,range(0,70000,1),ax1)
+plot_class_means(10,5,est, np.concatenate((X_train,X_test),axis=0), sort=True, ax=ax1)
 
 for i in range(10):
-    ax1.text(7+i*28, -2, 'Digit-' + str(i), fontsize=16, color = 'black')
+    ax1.text(7+i*28, -2, 'Digit-' + str(i), fontsize=fontsize, color = 'black')
 
 for i in range(5):
-    ax1.text(-6, 6+i*28, 'Cluster-' + str(i+1), fontsize=16, color = 'black', rotation='vertical')
-
+    ax1.text(-6, 6+i*28, 'Cluster-' + str(i+1), fontsize=fontsize, color = 'black', rotation='vertical')
+    
 if overwrite:
     plt.savefig('../../Ph.D/2017 - UAI/figures/clusters.pdf', format='pdf', bbox_inches='tight')
 ```
 
 
-![png](/phdwork/robustness/notebook/output_3_0.png)
+![png](output_3_0.png)
 
 
 
 ```python
 fig = plt.figure(figsize=(16,8))
 ax1 = fig.add_subplot(111)
-plot_class_means(10,5,est_kmean, np.concatenate((X_train,X_test),axis=0) ,cm.jet,range(0,70000,1),ax1)
+plot_class_means(10,5,est_kmean, np.concatenate((X_train,X_test),axis=0), sort=True, ax=ax1)
 
 for i in range(10):
-    ax1.text(7+i*28, -2, 'Digit-' + str(i), fontsize=16, color = 'black')
+    ax1.text(7+i*28, -2, 'Digit-' + str(i), fontsize=fontsize, color = 'black')
 
 for i in range(5):
-    ax1.text(-6, 6+i*28, 'Cluster-' + str(i+1), fontsize=16, color = 'black', rotation='vertical')
-
+    ax1.text(-6, 6+i*28, 'Cluster-' + str(i+1), fontsize=fontsize, color = 'black', rotation='vertical')
+    
 if overwrite:
     plt.savefig('../../Ph.D/2017 - UAI/figures/clusters_kmeans.pdf', format='pdf', bbox_inches='tight')
 ```
 
 
-![png](./notebook/output_4_0.png)
+![png](output_4_0.png)
 
 
 
@@ -250,14 +220,14 @@ for modelType in ['SVM', 'MLP', 'CNN-1', 'CNN-2', 'CNN-3']:
         partition = []
         for i in range(100):
             partition.append(partType)
-
+            
         foo_list.append(model)
         foo_list.append(partition)
         foo_list.append(foo[k,:].T)
 
         df.loc[k*100:k*100+99] = map(list, zip(*foo_list))
         k += 1
-
+        
 ```
 
 
@@ -265,20 +235,19 @@ for modelType in ['SVM', 'MLP', 'CNN-1', 'CNN-2', 'CNN-3']:
 plt.figure(figsize=((12,7)))
 ax1 = plt.subplot(111)
 # Draw a nested boxplot to show bills by day and sex
-sns.set(context='poster',style='darkgrid', palette='Set1', font_scale=1.2)
 sns.boxplot(x="Model", y="Accuracy", hue="Partition Type", data=df, ax=ax1,linewidth=1.5, width=.95)
 sns.despine(offset=0, trim=False)
 
-ax1.set_ylabel('Test accuracy ($Acc_X$, $Acc_I$)', fontsize=20)
-ax1.set_xlabel('Model', fontsize=20)
+ax1.set_ylabel('Test accuracy ($Acc_X$, $Acc_I$)', fontsize=fontsize)
+ax1.set_xlabel('Model', fontsize=fontsize)
 ax1.set_ylim(0.72,1)
-ax1.legend(loc = 'lower right', fontsize=20)
+ax1.legend(loc = 'lower right', fontsize=fontsize)
 if overwrite:
     plt.savefig('../../Ph.D/2017 - UAI/figures/models_acc.pdf', format='pdf', bbox_inches='tight')
 ```
 
 
-![png](/phdwork/robustness/notebook/output_6_0.png)
+![png](notebook/output_6_0.png)
 
 
 
@@ -286,27 +255,27 @@ if overwrite:
 plt.figure(figsize=(12,7))
 ax1 = plt.subplot(111)
 
-ax1.fill_between(range(0,5), exc_full.mean(axis=1),
-                             inc_full.mean(axis=1),
+ax1.fill_between(range(0,5), exc_full.mean(axis=1), 
+                             inc_full.mean(axis=1), 
                              facecolor=cm.Set1(b[0]), alpha=1, zorder=3, label='Using ACOL clusters')
 
 ax1.plot(inc_full_kmeans.mean(axis=1), '-',color=cm.Set1(b[1]),alpha=1, linewidth=1)
-ax1.fill_between(range(0,5), exc_full_kmeans.mean(axis=1),
-                             inc_full_kmeans.mean(axis=1),
+ax1.fill_between(range(0,5), exc_full_kmeans.mean(axis=1), 
+                             inc_full_kmeans.mean(axis=1), 
                              facecolor=cm.Set1(b[1]), alpha=1, zorder=2, label='Using $k$-means clusters')
 
-ax1.set_xlabel('Model', fontsize=20)
-ax1.set_xticklabels(['SVM', 'MLP', 'CNN-1', 'CNN-2', 'CNN-3'], fontsize=20)
+ax1.set_xlabel('Model', fontsize=fontsize)
+ax1.set_xticklabels(['SVM', 'MLP', 'CNN-1', 'CNN-2', 'CNN-3'], fontsize=fontsize)
 ax1.set_xticks([0,1,2,3,4])
 ax1.set_ylim(0.80,1)
-ax1.set_ylabel(r'Expected accuracy interval, $\mathcal{\bar{I}}$' , fontsize=20)
-ax1.legend(loc='lower right', fontsize=20)
+ax1.set_ylabel(r'Expected accuracy interval, $\mathcal{\bar{I}}$' , fontsize=fontsize)
+ax1.legend(loc='lower right', fontsize=fontsize)
 if overwrite:
     plt.savefig('../../Ph.D/2017 - UAI/figures/cluster_comparison_interval.pdf', format='pdf', bbox_inches='tight')
 ```
 
 
-![png](/phdwork/robustness/notebook/output_7_0.png)
+![png](notebook/output_7_0.png)
 
 
 
@@ -314,23 +283,21 @@ if overwrite:
 plt.figure(figsize=(12,7))
 ax1 = plt.subplot(111)
 
-sns.set(context='poster',style='darkgrid', palette='Set1',font_scale=1.2)
 sns.tsplot(data=rb_model[:,0:100].T,color=cm.Set1(b[0]),condition='Using ACOL clusters',ci=95, alpha=1)
 sns.tsplot(data=rb_model_kmeans.T,color=cm.Set1(b[1]),condition='Using $k$-means clusters',ci=95, alpha=1)
 sns.despine(offset=0, trim=True)
 
-ax1.set_xlabel('Model', fontsize=20)
-ax1.set_xticklabels(['SVM', 'MLP', 'CNN-1', 'CNN-2', 'CNN-3'], fontsize=20)
+ax1.set_xlabel('Model', fontsize=fontsize)
+ax1.set_xticklabels(['SVM', 'MLP', 'CNN-1', 'CNN-2', 'CNN-3'], fontsize=fontsize)
 ax1.set_xticks([0,1,2,3,4])
-#ax1.set_ylim(0,0.09)
-ax1.set_ylabel(r'Robustness, $\rho$', fontsize=20)
-ax1.legend(loc='lower right', fontsize=20)
+ax1.set_ylabel(r'Robustness, $\rho$', fontsize=fontsize)
+ax1.legend(loc='lower right', fontsize=fontsize)
 if overwrite:
     plt.savefig('../../Ph.D/2017 - UAI/figures/cluster_comparison.pdf', format='pdf', bbox_inches='tight')
 ```
 
 
-![png](/phdwork/robustness/notebook/output_8_0.png)
+![png](notebook/output_8_0.png)
 
 
 
@@ -358,14 +325,14 @@ for sizeType in ['100', '300', '1K', '3K', '10K', '30K', r'$\approx$ 56K']:
             size = []
             for i in range(100):
                 size.append(sizeType)
-
+                
             foo_list.append(model)
             foo_list.append(partition)
             foo_list.append(size)
             foo_list.append(foo[k,j,:].T)
         df.loc[k*100:k*100+99] = map(list, zip(*foo_list))
         k += 1
-
+        
 ```
 
 
@@ -373,19 +340,19 @@ for sizeType in ['100', '300', '1K', '3K', '10K', '30K', r'$\approx$ 56K']:
 plt.figure(figsize=((12,7)))
 ax1 = plt.subplot(111)
 # Draw a nested boxplot to show bills by day and sex
-sns.set(context='poster',style='darkgrid', palette='Set1', font_scale=1.2)
+
 sns.boxplot(x="Number of training samples", y="Accuracy", hue="Partition Type", data=df, ax=ax1, linewidth=1.5,width=.95)
 sns.despine(offset=0, trim=False)
-ax1.set_ylabel('Test accuracy, ($Acc_X$, $Acc_I$)', fontsize=20)
-ax1.set_xlabel('Number of training samples', fontsize=20)
+ax1.set_ylabel('Test accuracy, ($Acc_X$, $Acc_I$)', fontsize=fontsize)
+ax1.set_xlabel('Number of training samples', fontsize=fontsize)
 ax1.set_ylim(0.50,1)
-ax1.legend(loc='lower right', fontsize=20)
+ax1.legend(loc='lower right', fontsize=fontsize)
 if overwrite:
     plt.savefig('../../Ph.D/2017 - UAI/figures/dataset_size_acc.pdf', format='pdf', bbox_inches='tight')
 ```
 
 
-![png](/phdwork/robustness/notebook/output_10_0.png)
+![png](notebook/output_10_0.png)
 
 
 
@@ -394,33 +361,33 @@ plt.figure(figsize=(12,7))
 ax1 = plt.subplot(111)
 
 
-ax1.fill_between(range(0,7), exc_cnn_all[:,0,:].mean(axis=1),
-                             inc_cnn_all[:,0,:].mean(axis=1),
+ax1.fill_between(range(0,7), exc_cnn_all[:,0,:].mean(axis=1), 
+                             inc_cnn_all[:,0,:].mean(axis=1), 
                              facecolor=cm.Set1(b[0]), alpha=1, zorder=2, label='CNN-1')
 
-ax1.fill_between(range(0,7), exc_cnn_all[:,1,:].mean(axis=1),
-                             inc_cnn_all[:,1,:].mean(axis=1),
+ax1.fill_between(range(0,7), exc_cnn_all[:,1,:].mean(axis=1), 
+                             inc_cnn_all[:,1,:].mean(axis=1), 
                              facecolor=cm.Set1(b[1]), alpha=1, zorder=2, label='CNN-2')
 
 ax1.plot(inc_cnn_all[:,2,:].mean(axis=1), color = cm.Set1(b[5]), alpha=1)
-ax1.fill_between(range(0,7), exc_cnn_all[:,2,:].mean(axis=1),
-                             inc_cnn_all[:,2,:].mean(axis=1),
+ax1.fill_between(range(0,7), exc_cnn_all[:,2,:].mean(axis=1), 
+                             inc_cnn_all[:,2,:].mean(axis=1), 
                              facecolor=cm.Set1(b[5]), alpha=1, zorder=2, label='CNN-3')
 
 ax1.plot(inc_cnn_all[:,0,:].mean(axis=1), '--', color = cm.Set1(b[0]), alpha=1,zorder=4)
 ax1.plot(inc_cnn_all[:,1,:].mean(axis=1), '--', color = cm.Set1(b[1]), alpha=1,zorder=4)
 
-ax1.set_xlabel('Number of training samples', fontsize=20)
-ax1.set_xticklabels(['100', '300', '1K', '3K', '10K', '30K', r'$\approx$55K'],fontsize=20 )
+ax1.set_xlabel('Number of training samples', fontsize=fontsize)
+ax1.set_xticklabels(['100', '300', '1K', '3K', '10K', '30K', r'$\approx$56K'],fontsize=fontsize )
 ax1.set_ylim(0.70,1)
-ax1.set_ylabel(r'Expected accuracy interval, $\mathcal{\bar{I}}$' , fontsize=20)
-ax1.legend(loc='lower right', fontsize=20)
+ax1.set_ylabel(r'Expected accuracy interval, $\mathcal{\bar{I}}$' , fontsize=fontsize)
+ax1.legend(loc='lower right', fontsize=fontsize)
 if overwrite:
     plt.savefig('../../Ph.D/2017 - UAI/figures/cnn_acc.pdf', format='pdf', bbox_inches='tight')
 ```
 
 
-![png](/phdwork/robustness/notebook/output_11_0.png)
+![png](notebook/output_11_0.png)
 
 
 
@@ -428,21 +395,20 @@ if overwrite:
 plt.figure(figsize=(12,7))
 ax1 = plt.subplot(111)
 
-sns.set(context='poster',style='darkgrid', palette='Set1', font_scale=1.2)
 sns.tsplot(data=rb.swapaxes(0,2).swapaxes(1,2),color=cm.Set1([b[0],b[1],b[5]]),condition=['CNN-1','CNN-2','CNN-3'],ci=[95], alpha=1)
 sns.despine(offset=0, trim=False)
 
-ax1.set_xlabel('Number of training samples', fontsize=20)
-ax1.set_xticklabels(['100', '300', '1K', '3K', '10K', '30K', r'$\approx$56K'] , fontsize=20)
+ax1.set_xlabel('Number of training samples', fontsize=fontsize)
+ax1.set_xticklabels(['100', '300', '1K', '3K', '10K', '30K', r'$\approx$56K'] , fontsize=fontsize)
 ax1.set_ylim(.84,1)
-ax1.set_ylabel(r'Robustness, $\rho$', fontsize=20)
-ax1.legend(loc='lower right', fontsize=20)
+ax1.set_ylabel(r'Robustness, $\rho$', fontsize=fontsize)
+ax1.legend(loc='lower right', fontsize=fontsize)
 if overwrite:
     plt.savefig('../../Ph.D/2017 - UAI/figures/cnn_robustness.pdf', format='pdf', bbox_inches='tight')
 ```
 
 
-![png](/phdwork/robustness/notebook/output_12_0.png)
+![png](notebook/output_12_0.png)
 
 
 
@@ -450,8 +416,8 @@ if overwrite:
 plt.figure(figsize=(12,7))
 ax1 = plt.subplot(111)
 
-ax1.fill_between(range(0,7), np.nanmean(exc_class_cnn,axis=1)[:,0],
-                             np.nanmean(inc_class_cnn,axis=1)[:,0],
+ax1.fill_between(range(0,7), np.nanmean(exc_class_cnn,axis=1)[:,0], 
+                             np.nanmean(inc_class_cnn,axis=1)[:,0], 
                              facecolor=cm.Set1(b[0]), alpha=1, zorder=2, label='Digit-0')
 
 ax1.fill_between(range(0,7), np.nanmean(exc_class_cnn,axis=1)[:,1],  
@@ -466,17 +432,17 @@ ax1.plot(np.nanmean(exc_class_cnn,axis=1)[:,0], '--', color = cm.Set1(b[0]), alp
 ax1.plot(np.nanmean(inc_class_cnn,axis=1)[:,0], '--', color = cm.Set1(b[0]), alpha=1,zorder=4)
 ax1.plot(np.nanmean(exc_class_cnn,axis=1)[:,1], '--', color = cm.Set1(b[1]), alpha=1,zorder=4)
 
-ax1.set_xlabel('Number of training samples', fontsize=20)
-ax1.set_xticklabels(['100', '300', '1K', '3K', '10K', '30K', r'$\approx$55K'] , fontsize=20)
+ax1.set_xlabel('Number of training samples', fontsize=fontsize)
+ax1.set_xticklabels(['100', '300', '1K', '3K', '10K', '30K', r'$\approx$56K'] , fontsize=fontsize)
 ax1.set_ylim(0.55,1)
-ax1.set_ylabel(r'Expected accuracy interval, $\mathcal{\bar{I}}$' , fontsize=20)
-ax1.legend(loc='lower right', fontsize=20)
+ax1.set_ylabel(r'Expected accuracy interval, $\mathcal{\bar{I}}$' , fontsize=fontsize)
+ax1.legend(loc='lower right', fontsize=fontsize)
 if overwrite:
     plt.savefig('../../Ph.D/2017 - UAI/figures/cnn_class_acc.pdf', format='pdf', bbox_inches='tight')
 ```
 
 
-![png](/phdwork/robustness/notebook/output_13_0.png)
+![png](notebook/output_13_0.png)
 
 
 
@@ -484,19 +450,19 @@ if overwrite:
 plt.figure(figsize=(12,7))
 ax1 = plt.subplot(111)
 
-sns.set(context='poster',style='darkgrid', palette='Set1',font_scale=1.2)
 sns.tsplot(data=rb_class.swapaxes(0,1)[:,:,[0,1,5]],color=cm.Set1([b[0],b[1],b[5]]),
            condition=['Digit-0','Digit-1','Digit-5'],estimator=np.nanmean, ci=[95], alpha=1)
 sns.despine(offset=0, trim=False)
 
-ax1.set_xlabel('Number of training samples', fontsize=18)
-ax1.set_xticklabels(['100', '300', '1K', '3K', '10K', '30K', r'$\approx$56K'] , fontsize=20)
+ax1.set_xlabel('Number of training samples', fontsize=fontsize)
+ax1.set_xticklabels(['100', '300', '1K', '3K', '10K', '30K', r'$\approx$56K'] , fontsize=fontsize)
 ax1.set_ylim(0.6,1)
-ax1.set_ylabel(r'Robustness, $\rho$', fontsize=20)
-ax1.legend(loc='lower right', fontsize=20)
+ax1.set_ylabel(r'Robustness, $\rho$', fontsize=fontsize)
+ax1.legend(loc='lower right', fontsize=fontsize)
 if overwrite:
     plt.savefig('../../Ph.D/2017 - UAI/figures/cnn_class_robustness.pdf', format='pdf', bbox_inches='tight')
 ```
 
 
-![png](/phdwork/robustness/notebook/output_14_0.png)
+![png](notebook/output_14_0.png)
+
