@@ -7,7 +7,7 @@ Paper will be available soon
 
 [Notebook to generate the illustrations in the paper](robustness.md)
 
-[Codes](http://github.com/ozcell/phdwork/tree/master/robustness)
+[Codes](http://github.com/ozcell/mywork/tree/master/phdwork/robustness)
 
 ### [Deep Clustering using Auto-Clustering Output Layer](https://arxiv.org/pdf/1702.08648.pdf)
 Notebook and codes will be available soon
