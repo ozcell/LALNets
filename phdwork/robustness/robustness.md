@@ -228,7 +228,7 @@ if overwrite:
 ```
 
 
-![png](/phdwork/robustness/notebook/output_4_0.png)
+![png](./notebook/output_4_0.png)
 
 
 
