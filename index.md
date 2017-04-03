@@ -10,4 +10,7 @@ Paper will be available soon
 [Codes](http://github.com/ozcell/phdwork/tree/master/phdwork/robustness)
 
 ### [Deep Clustering using Auto-Clustering Output Layer](https://arxiv.org/pdf/1702.08648.pdf)
-Notebook and codes will be available soon
+
+[Notebook to generate the illustrations in the paper](./phdwork/parentvised/parentvised.md)
+
+Codes will be available soon
