@@ -178,7 +178,7 @@ if overwrite:
 ```
 
 
-![png](output_3_0.png)
+![png](notebook/output_3_0.png)
 
 
 
@@ -198,7 +198,7 @@ if overwrite:
 ```
 
 
-![png](output_4_0.png)
+![png](notebook/output_4_0.png)
 
 
 
