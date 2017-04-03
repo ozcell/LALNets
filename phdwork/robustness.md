@@ -15,7 +15,7 @@ import seaborn as sns
 np.random.seed(1337)  # for reproducibility
 %matplotlib inline
 
-from cycler import cycler 
+from cycler import cycler
 
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
@@ -48,9 +48,9 @@ b=np.linspace(0.00, 1, 10)
 def plot_class_means(nb_classes, nb_clusters, est, test, cmap, boundary, ax=None):
     if ax is None:
         ax = plt.gca()
-        
+
     n,h,w,d = test.shape
-    
+
     img = np.zeros((h*nb_clusters,w*nb_classes))
     imgSorted = np.zeros_like(img)
     ind = np.zeros((nb_clusters, nb_classes))
@@ -63,19 +63,19 @@ def plot_class_means(nb_classes, nb_clusters, est, test, cmap, boundary, ax=None
             else:
                 a = a.mean(axis=0).reshape(h,w)
             ind[i,j] = b
-            img[i*h:(i+1)*h,j*w:(j+1)*w] = a 
-    
+            img[i*h:(i+1)*h,j*w:(j+1)*w] = a
+
     for i in range(nb_clusters):
         for j in range(nb_classes):
             k = ind.argsort(axis=0)[::-1][i,j]
             imgSorted[i*h:(i+1)*h,j*w:(j+1)*w] = img[k*h:(k+1)*h,j*w:(j+1)*w]
-        
+
     fig = ax.imshow(imgSorted,cmap=cmap, interpolation='bicubic')
 
     ax.axis('off')
     ax.grid('off')
-    
-        
+
+
     return fig
 
 def robustness_constant(acc1, acc2):
@@ -123,7 +123,7 @@ for i in [100,300, 1000, 3000, 10000, 30000, 60000]:
         foo = np.load(load_loc1)[:,3,:].max(axis=1)
         exc_cnn_all[k,j-1,:] = foo[np.random.permutation(foo.shape[0])][0:100]
     k += 1
-    
+
 inc_cnn_all  = np.zeros((7,3,100))
 k = 0
 for i in [100,300, 1000, 3000, 10000, 30000, 60000]:
@@ -132,7 +132,7 @@ for i in [100,300, 1000, 3000, 10000, 30000, 60000]:
         foo = np.load(load_loc1)[:,3,:].max(axis=1)
         inc_cnn_all[k,j-1,:] = foo[np.random.permutation(foo.shape[0])][0:100]
     k += 1
-    
+
 exc_full  = np.zeros((5,100))
 exc_full[0,:] = np.load(main_loc + 'SVM/acc_x_60000.npy')
 exc_full[1,:] = np.load(main_loc + 'MLP/acc_x_60000.npy')[:,3,:].max(axis=1)
@@ -168,15 +168,15 @@ for i in [100,300, 1000, 3000, 10000, 30000, 60000]:
     load_loc1 = main_loc + 'CNN' + str(j) + '/class_acc_x_' + str(i) + '.npy'
     exc_class_cnn[k,:,:] = np.load(load_loc1)
     k += 1
-    
-    
+
+
 inc_class_cnn = np.zeros((7,100,10))
 k = 0
 for i in [100,300, 1000, 3000, 10000, 30000, 60000]:
     load_loc1 = main_loc + 'CNN' + str(j) + '/class_acc_i_' + str(i) + '.npy'
     inc_class_cnn[k,:,:] = np.load(load_loc1)[0:100,:]
     k += 1
-    
+
 inc_class_cnn[inc_class_cnn==0]=np.nan
 exc_class_cnn[exc_class_cnn==0]=np.nan
 
@@ -202,13 +202,13 @@ for i in range(10):
 
 for i in range(5):
     ax1.text(-6, 6+i*28, 'Cluster-' + str(i+1), fontsize=16, color = 'black', rotation='vertical')
-    
+
 if overwrite:
     plt.savefig('../../Ph.D/2017 - UAI/figures/clusters.pdf', format='pdf', bbox_inches='tight')
 ```
 
 
-![png](/robustness/notebook/output_3_0.png)
+![png](/phdwork/robustness/notebook/output_3_0.png)
 
 
 
@@ -222,13 +222,13 @@ for i in range(10):
 
 for i in range(5):
     ax1.text(-6, 6+i*28, 'Cluster-' + str(i+1), fontsize=16, color = 'black', rotation='vertical')
-    
+
 if overwrite:
     plt.savefig('../../Ph.D/2017 - UAI/figures/clusters_kmeans.pdf', format='pdf', bbox_inches='tight')
 ```
 
 
-![png](/robustness/notebook/output_4_0.png)
+![png](/phdwork/robustness/notebook/output_4_0.png)
 
 
 
@@ -250,14 +250,14 @@ for modelType in ['SVM', 'MLP', 'CNN-1', 'CNN-2', 'CNN-3']:
         partition = []
         for i in range(100):
             partition.append(partType)
-            
+
         foo_list.append(model)
         foo_list.append(partition)
         foo_list.append(foo[k,:].T)
 
         df.loc[k*100:k*100+99] = map(list, zip(*foo_list))
         k += 1
-        
+
 ```
 
 
@@ -278,7 +278,7 @@ if overwrite:
 ```
 
 
-![png](/robustness/notebook/output_6_0.png)
+![png](/phdwork/robustness/notebook/output_6_0.png)
 
 
 
@@ -286,13 +286,13 @@ if overwrite:
 plt.figure(figsize=(12,7))
 ax1 = plt.subplot(111)
 
-ax1.fill_between(range(0,5), exc_full.mean(axis=1), 
-                             inc_full.mean(axis=1), 
+ax1.fill_between(range(0,5), exc_full.mean(axis=1),
+                             inc_full.mean(axis=1),
                              facecolor=cm.Set1(b[0]), alpha=1, zorder=3, label='Using ACOL clusters')
 
 ax1.plot(inc_full_kmeans.mean(axis=1), '-',color=cm.Set1(b[1]),alpha=1, linewidth=1)
-ax1.fill_between(range(0,5), exc_full_kmeans.mean(axis=1), 
-                             inc_full_kmeans.mean(axis=1), 
+ax1.fill_between(range(0,5), exc_full_kmeans.mean(axis=1),
+                             inc_full_kmeans.mean(axis=1),
                              facecolor=cm.Set1(b[1]), alpha=1, zorder=2, label='Using $k$-means clusters')
 
 ax1.set_xlabel('Model', fontsize=20)
@@ -306,7 +306,7 @@ if overwrite:
 ```
 
 
-![png](/robustness/notebook/output_7_0.png)
+![png](/phdwork/robustness/notebook/output_7_0.png)
 
 
 
@@ -330,7 +330,7 @@ if overwrite:
 ```
 
 
-![png](/robustness/notebook/output_8_0.png)
+![png](/phdwork/robustness/notebook/output_8_0.png)
 
 
 
@@ -358,14 +358,14 @@ for sizeType in ['100', '300', '1K', '3K', '10K', '30K', r'$\approx$ 56K']:
             size = []
             for i in range(100):
                 size.append(sizeType)
-                
+
             foo_list.append(model)
             foo_list.append(partition)
             foo_list.append(size)
             foo_list.append(foo[k,j,:].T)
         df.loc[k*100:k*100+99] = map(list, zip(*foo_list))
         k += 1
-        
+
 ```
 
 
@@ -385,7 +385,7 @@ if overwrite:
 ```
 
 
-![png](/robustness/notebook/output_10_0.png)
+![png](/phdwork/robustness/notebook/output_10_0.png)
 
 
 
@@ -394,17 +394,17 @@ plt.figure(figsize=(12,7))
 ax1 = plt.subplot(111)
 
 
-ax1.fill_between(range(0,7), exc_cnn_all[:,0,:].mean(axis=1), 
-                             inc_cnn_all[:,0,:].mean(axis=1), 
+ax1.fill_between(range(0,7), exc_cnn_all[:,0,:].mean(axis=1),
+                             inc_cnn_all[:,0,:].mean(axis=1),
                              facecolor=cm.Set1(b[0]), alpha=1, zorder=2, label='CNN-1')
 
-ax1.fill_between(range(0,7), exc_cnn_all[:,1,:].mean(axis=1), 
-                             inc_cnn_all[:,1,:].mean(axis=1), 
+ax1.fill_between(range(0,7), exc_cnn_all[:,1,:].mean(axis=1),
+                             inc_cnn_all[:,1,:].mean(axis=1),
                              facecolor=cm.Set1(b[1]), alpha=1, zorder=2, label='CNN-2')
 
 ax1.plot(inc_cnn_all[:,2,:].mean(axis=1), color = cm.Set1(b[5]), alpha=1)
-ax1.fill_between(range(0,7), exc_cnn_all[:,2,:].mean(axis=1), 
-                             inc_cnn_all[:,2,:].mean(axis=1), 
+ax1.fill_between(range(0,7), exc_cnn_all[:,2,:].mean(axis=1),
+                             inc_cnn_all[:,2,:].mean(axis=1),
                              facecolor=cm.Set1(b[5]), alpha=1, zorder=2, label='CNN-3')
 
 ax1.plot(inc_cnn_all[:,0,:].mean(axis=1), '--', color = cm.Set1(b[0]), alpha=1,zorder=4)
@@ -420,7 +420,7 @@ if overwrite:
 ```
 
 
-![png](/robustness/notebook/output_11_0.png)
+![png](/phdwork/robustness/notebook/output_11_0.png)
 
 
 
@@ -442,7 +442,7 @@ if overwrite:
 ```
 
 
-![png](/robustness/notebook/output_12_0.png)
+![png](/phdwork/robustness/notebook/output_12_0.png)
 
 
 
@@ -450,8 +450,8 @@ if overwrite:
 plt.figure(figsize=(12,7))
 ax1 = plt.subplot(111)
 
-ax1.fill_between(range(0,7), np.nanmean(exc_class_cnn,axis=1)[:,0], 
-                             np.nanmean(inc_class_cnn,axis=1)[:,0], 
+ax1.fill_between(range(0,7), np.nanmean(exc_class_cnn,axis=1)[:,0],
+                             np.nanmean(inc_class_cnn,axis=1)[:,0],
                              facecolor=cm.Set1(b[0]), alpha=1, zorder=2, label='Digit-0')
 
 ax1.fill_between(range(0,7), np.nanmean(exc_class_cnn,axis=1)[:,1],  
@@ -476,7 +476,7 @@ if overwrite:
 ```
 
 
-![png](/robustness/notebook/output_13_0.png)
+![png](/phdwork/robustness/notebook/output_13_0.png)
 
 
 
@@ -499,5 +499,4 @@ if overwrite:
 ```
 
 
-![png](/robustness/notebook/output_14_0.png)
-
+![png](/phdwork/robustness/notebook/output_14_0.png)
