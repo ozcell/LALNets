@@ -11,6 +11,6 @@ Paper will be available soon
 
 ### [Deep Clustering using Auto-Clustering Output Layer](https://arxiv.org/pdf/1702.08648.pdf)
 
-[Notebook to generate the illustrations in the paper](./phdwork/parentvised/parentvised.md)
+[Notebook to generate the illustrations in the paper](./phdwork/parentvised/notebook.md)
 
 Codes will be available soon
