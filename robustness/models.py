@@ -1,11 +1,12 @@
 '''
 Model generator for robustness experiments.
-from keras.constraints import maxnorm
+
 '''
 
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten, Layer
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
+from keras.constraints import maxnorm
 
 def define_cnn(input_shape, nb_classes, cnn_type=1, nb_filters = 32, nb_pool = 2, nb_conv = 3):
     model = Sequential()
