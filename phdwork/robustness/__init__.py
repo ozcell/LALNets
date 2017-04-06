@@ -1,2 +1,3 @@
-from .models import define_cnn, define_mlp
-from .metrics import robustness_constant
+from __future__ import absolute_import
+from . import models
+from . import metrics

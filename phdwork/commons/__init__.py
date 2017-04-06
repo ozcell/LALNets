@@ -1,1 +1,2 @@
-from .utils import plot_class_means
+from __future__ import absolute_import
+from . import utils

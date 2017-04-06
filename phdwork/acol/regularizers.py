@@ -6,7 +6,7 @@ import warnings
 
 Tr = K.theano.tensor.nlinalg.trace
 
-class ACOLRegularizer(Regularizer):
+class AcolRegularizer(Regularizer):
     """Regularizer for ACOL.
 
     # Arguments
@@ -65,8 +65,8 @@ class ACOLRegularizer(Regularizer):
 ActivityRegularizer = ACOLRegularizer
 
 
-def activity_ACOL(c1=1., c2=1., c3=0., c4=0.000001,):
-    return ACOLRegularizer(c1=c1, c2=c2, c3=c3, c4=c4)
+def activity_acol(c1=1., c2=1., c3=0., c4=0.000001,):
+    return AcolRegularizer(c1=c1, c2=c2, c3=c3, c4=c4)
 
 
 def get(identifier, kwargs=None):
