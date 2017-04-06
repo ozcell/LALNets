@@ -1,2 +1,21 @@
-
+*.DS_Store
 *.pyc
+*.swp
+temp/*
+dist/*
+build/*
+docs/site/*
+docs/theme/*
+tags
+phdwork.egg-info
+
+# test-related
+.coverage
+.cache
+
+# developer environments
+.idea
+
+.DS_Store
+
+phdwork/.DS_Store
