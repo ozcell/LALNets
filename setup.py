@@ -7,5 +7,4 @@ setup(name='phdwork',
       description='Ozsel Kilinc Ph.D. Work',
       author='Ozsel Kilinc',
       author_email='ozselkilinc@gmail.com',
-      url='https://github.com/ozcell/mywork/phdwork',
       packages=find_packages())
