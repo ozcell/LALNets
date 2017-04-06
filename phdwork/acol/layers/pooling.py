@@ -18,7 +18,7 @@ from keras import initializations
 from keras import regularizers
 from keras import constraints
 
-from acol import initializations
+from phdwork.acol import initializations
 
 class AveragePooling(Layer):
     """Just your regular densely-connected NN layer.
