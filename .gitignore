@@ -15,7 +15,3 @@ phdwork.egg-info
 
 # developer environments
 .idea
-
-.DS_Store
-
-phdwork/.DS_Store
