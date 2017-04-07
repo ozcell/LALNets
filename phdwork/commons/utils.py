@@ -53,7 +53,7 @@ def cumulate_metrics(X, metric_func, batch_size=128):
 
     count = 0
 
-    metrics = np.zeros(get_metrics.function.n_returned_outputs)
+    metrics = np.zeros(metric_func.function.n_returned_outputs)
 
     for batch_ind in range(0, len(X), batch_size):
         X_batch = X[batch_ind:batch_ind+batch_size,]
@@ -63,3 +63,41 @@ def cumulate_metrics(X, metric_func, batch_size=128):
     metrics /= count
 
     return metrics
+
+def get_acception_rejection_activations(acti, nb_parents):
+
+    """
+    Seperates the cluster activations into two group.
+
+    Returns:
+
+    acti_accepting_clusters: activation of the clusters observed wrt accepted samples
+    acti_rejecting_clusters: activations all other rejecting clusters
+
+    """
+
+    #get activation shape
+    nb_samples, nb_all_clusters, nb_reruns = acti.shape
+
+    #initialize return variables
+    acti_accepting_clusters, acti_rejecting_clusters = [], []
+
+    #reshape activation
+    acti = acti.swapaxes(1,2).reshape(nb_samples*nb_reruns, nb_all_clusters)
+
+    for accepting_cluster in range(nb_all_clusters):
+
+        #indices of samples accepted by accepting cluster
+        accepted_ind = (acti.argmax(axis=1)==accepting_cluster)
+
+        #accepting cluster belongs to this parent
+        parent = accepting_cluster%nb_parents
+
+        #list of rejecting clusters
+        rejecting_clusters = range(parent, nb_all_clusters, nb_parents).remove(accepting_cluster)
+
+        #activation observed on accepting cluster and rejecting clusters
+        acti_accepting_clusters.extend(acti[accepted_ind, accepting_cluster])
+        acti_rejecting_clusters.extend(acti[accepted_ind, rejecting_clusters])
+
+    return (acti_accepting_clusters, acti_rejecting_clusters)
