@@ -6,15 +6,15 @@ Essential functions commonly used in scripts.
 import numpy as np
 
 
-def combine_classes(y, nb_parent_classes):
+def combine_classes(y, nb_parents):
 
     nb_classes = y.max() - y.min() + 1
-    ratio = nb_classes/nb_parent_classes
+    ratio = nb_classes/nb_parents
 
     y_parent = np.zeros_like(y)
 
-    for label in range(nb_parent_classes):
-        y_parent[y/ratio==label] = label
+    for parent in range(nb_parents):
+        y_parent[y/ratio == parent] = parent
 
     return y_parent
 
@@ -41,33 +41,25 @@ def correct_labels(ground_truth, est):
 
     corrested_est = np.zeros_like(est, dtype='int')
 
-    for label in range(est.max()+1):
-        if np.bincount(ground_truth[est==label]).size != 0:
-            true_label = np.bincount(ground_truth[est==label]).argmax()
-            corrested_est[est==label] = true_label
+    for cluster in range(est.max()+1):
+        if np.bincount(ground_truth[est==cluster]).size != 0:
+            true_label = np.bincount(ground_truth[est==cluster]).argmax()
+            corrested_est[est==cluster] = true_label
 
     return corrested_est
 
 
-def cumulate_acol_metrics(X, metric_func, batch_size=128):
+def cumulate_metrics(X, metric_func, batch_size=128):
 
-    affinity_sum, balance_sum, coactivity_sum, reg_sum, count = 0, 0, 0, 0, 0
+    count = 0
+
+    metrics = np.zeros(get_metrics.function.n_returned_outputs)
 
     for batch_ind in range(0, len(X), batch_size):
         X_batch = X[batch_ind:batch_ind+batch_size,]
-
-        get_metrics_list = metric_func([X_batch,0])
-
-        affinity_sum += get_metrics_list[0].item()
-        balance_sum += get_metrics_list[1].item()
-        coactivity_sum += get_metrics_list[2].item()
-        reg_sum += get_metrics_list[3].item()
-
+        metrics += metric_func([X_batch,0])
         count += 1
 
-    affinity_sum /= count
-    balance_sum /= count
-    coactivity_sum /= count
-    reg_sum /= count
+    metrics /= count
 
-    return affinity_sum, balance_sum, coactivity_sum, coactivity_sum, reg_sum
+    return metrics

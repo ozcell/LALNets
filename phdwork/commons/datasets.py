@@ -20,4 +20,4 @@ def load_mnist(order='tf'):
     X_train /= 255
     X_test /= 255
 
-    return (X_train, y_train), (X_test, y_test)
+    return (X_train, y_train), (X_test, y_test), input_shape

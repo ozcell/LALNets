@@ -2,7 +2,7 @@ import numpy as np
 import time
 from keras import backend as K
 from keras.utils import np_utils
-from phdwork.commons.utils import calculate_cl_acc, cumulate_acol_metrics
+from phdwork.commons.utils import calculate_cl_acc, cumulate_metrics
 
 '''
 
@@ -13,7 +13,7 @@ Functions to train and evaluate ACOL experiments.
 def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model, model_truncated,
                                       X_train, y_train, y_train_parent,
                                       X_test, y_test, y_test_parent,
-                                      nb_reruns, nb_epoch, nb_dpoints, batch_size,
+                                      optimizer, nb_reruns, nb_epoch, nb_dpoints, batch_size,
                                       validate_on_test_set=True, c3_update_func=None):
 
     #find the values of the dependent variables used inside the script
@@ -45,13 +45,6 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model,
                'coactivity': coactivity,
                'reg': reg}
 
-    #define a Theano function to reach values of ACOL metrics
-    get_metrics = K.function([model.layers[0].input, K.learning_phase()],
-                             [model.get_layer("L-1").activity_regularizer.affinity,
-                              model.get_layer("L-1").activity_regularizer.balance,
-                              model.get_layer("L-1").activity_regularizer.coactivity,
-                              model.get_layer("L-1").activity_regularizer.reg])
-
     #initialize activation matrices
     acti_train = np.zeros((len(X_train), nb_all_clusters, nb_reruns))
     acti_test = np.zeros((len(X_test), nb_all_clusters, nb_reruns))
@@ -69,6 +62,17 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model,
         for item in metrics.itervalues():
             item.append([])
 
+        #compile models for each rerun
+        model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
+        model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
+
+        #define a Theano function to reach values of ACOL metrics
+        get_metrics = K.function([model.layers[0].input, K.learning_phase()],
+                                 [model.get_layer("L-1").activity_regularizer.affinity,
+                                  model.get_layer("L-1").activity_regularizer.balance,
+                                  model.get_layer("L-1").activity_regularizer.coactivity,
+                                  model.get_layer("L-1").activity_regularizer.reg])
+
         for dpoint in range(nb_dpoints):
 
             history = model.fit(X_train, Y_train_parent,
@@ -79,7 +83,7 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model,
             model_truncated.set_weights(model.get_weights())
 
             #get ACOL metrics, affinity, balance, coactivity and regularization cost
-            acol_metrics = cumulate_acol_metrics(X_train, get_metrics, batch_size)
+            acol_metrics = cumulate_metrics(X_train, get_metrics, batch_size)
 
             #calculate clustering accuracy
             est_train = model_truncated.predict_classes(X_train, batch_size=batch_size, verbose=0)
