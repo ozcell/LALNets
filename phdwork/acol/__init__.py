@@ -3,5 +3,6 @@ from . import layers
 from . import initializations
 from . import regularizers
 from . import models
+from . import trainings
 
-__version__ = '0.3.1'
+__version__ = '0.3.2'
