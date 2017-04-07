@@ -9,7 +9,7 @@ Functions to train and evaluate ACOL experiments.
 
 '''
 
-def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model, model2,
+def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model, model_truncated,
                                       X_train, y_train, y_train_parent,
                                       X_test, y_test, y_test_parent,
                                       nb_reruns, nb_epoch, nb_dpoints, batch_size,
@@ -52,8 +52,8 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model,
                               model.get_layer("L-1").activity_regularizer.reg])
 
     #initialize activation matrices
-    acti_train = np.zeros((len(X_train), nb_all_seeds, nb_reruns))
-    acti_test = np.zeros((len(X_test), nb_all_seeds, nb_reruns))
+    acti_train = np.zeros((len(X_train), nb_all_clusters, nb_reruns))
+    acti_test = np.zeros((len(X_test), nb_all_clusters, nb_reruns))
 
     if validate_on_test_set:
         validation_data=(X_test, Y_test_parent)
@@ -74,24 +74,36 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint,
                                 verbose=2, validation_data=validation_data)
 
-            model2.set_weights(model.get_weights())
+            #transfer weights to truncated mirror of the model
+            model_truncated.set_weights(model.get_weights())
 
-            est_train = model2.predict_classes(X_train, batch_size=batch_size, verbose=0)
-            est_test = model2.predict_classes(X_test, batch_size=batch_size, verbose=0)
-
+            #get ACOL metrics, affinity, balance, coactivity and regularization cost
             acol_metrics = cumulate_acol_metrics(X_train, get_metrics, batch_size)
 
+            #calculate clustering accuracy
+            est_train = model_truncated.predict_classes(X_train, batch_size=batch_size, verbose=0)
+            est_test = model_truncated.predict_classes(X_test, batch_size=batch_size, verbose=0)
+            _cl_acc = calculate_cl_acc(y_train, est_train, nb_all_clusters, 0, False)
+            _cl_vacc = calculate_cl_acc(y_test, est_test, nb_all_clusters, 0, False)
+
+            #Check if clustering accuracy is calculated over entire dataset
+            if (_cl_acc[1] != len(X_train)) or (_cl_acc[1] != len(X_test)):
+                print("!" * 40)
+                print('Warning! Check cluster accuracy calcualtions. Consider label_correction.')
+                print("!" * 40)
+
+            #ACOL c3 update
             if c3_update_func is not None:
                 model.get_layer("L-1").activity_regularizer.c3.set_value(c3_update_func(acol_metrics))
-                model2.get_layer("L-1").activity_regularizer.c3.set_value(c3_update_func(acol_metrics))
+                model_truncated.get_layer("L-1").activity_regularizer.c3.set_value(c3_update_func(acol_metrics))
 
             metrics.get('loss')[-1].append(history.history.get('loss')[0])
             metrics.get('acc')[-1].append(history.history.get('acc')[0])
             metrics.get('vloss')[-1].append(history.history.get('val_loss')[0])
             metrics.get('vacc')[-1].append(history.history.get('val_acc')[0])
 
-            metrics.get('cl_acc')[-1].append(calculate_cl_acc(y_train, est_train, nb_all_clusters, 0, False)[0])
-            metrics.get('cl_vacc')[-1].append(calculate_cl_acc(y_test, est_test, nb_all_clusters, 0, False)[0])
+            metrics.get('cl_acc')[-1].append(_cl_acc[0])
+            metrics.get('cl_vacc')[-1].append(_cl_acc[1])
 
             metrics.get('affinity')[-1].append(acol_metrics[0])
             metrics.get('balance')[-1].append(acol_metrics[1])
@@ -102,8 +114,8 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model,
             print('End of epoch ' + str((dpoint+1)*nb_epoch_per_dpoint) + ' of rerun ' + str(rerun+1))
             print("*" * 40)
 
-        acti_train[:,:,rerun] = model2.predict(X_train, batch_size=batch_size)
-        acti_test[:,:,rerun] = model2.predict(X_test, batch_size=batch_size)
+        acti_train[:,:,rerun] = model_truncated.predict(X_train, batch_size=batch_size)
+        acti_test[:,:,rerun] = model_truncated.predict(X_test, batch_size=batch_size)
 
         end = time.time()
 
