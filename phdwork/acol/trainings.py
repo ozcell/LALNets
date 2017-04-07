@@ -88,7 +88,7 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model,
             _cl_vacc = calculate_cl_acc(y_test, est_test, nb_all_clusters, 0, False)
 
             #Check if clustering accuracy is calculated over entire dataset
-            if (_cl_acc[1] != len(X_train)) or (_cl_acc[1] != len(X_test)):
+            if (_cl_acc[1] != len(X_train)) or (_cl_vacc[1] != len(X_test)):
                 print("!" * 40)
                 print('Warning! Check cluster accuracy calcualtions. Consider label_correction.')
                 print("!" * 40)
@@ -104,7 +104,7 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model,
             metrics.get('vacc')[-1].append(history.history.get('val_acc')[0])
 
             metrics.get('cl_acc')[-1].append(_cl_acc[0])
-            metrics.get('cl_vacc')[-1].append(_cl_acc[1])
+            metrics.get('cl_vacc')[-1].append(_cl_vacc[0])
 
             metrics.get('affinity')[-1].append(acol_metrics[0])
             metrics.get('balance')[-1].append(acol_metrics[1])
