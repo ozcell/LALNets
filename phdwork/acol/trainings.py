@@ -1,7 +1,7 @@
 import numpy as np
 from keras.utils import np_utils
 from keras import backend as K
-from phdwork.commons.utils import calculate_cl_acc, cumulate_acol_metrics 
+from phdwork.commons.utils import calculate_cl_acc, cumulate_acol_metrics
 
 '''
 
@@ -16,7 +16,7 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model,
                                       validate_on_test_set=True, c3_update_func=None):
 
     #find the values of the dependent variables used inside the script
-    nb_clusters_per_parent = nb_parents*nb_seeds_per_parent
+    nb_all_clusters = nb_parents*nb_clusters_per_parent
     nb_classes = y_train.max() - y_train.min() + 1
     nb_epoch_per_dpoint = nb_epoch/nb_dpoints
 
@@ -52,8 +52,8 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model,
                               model.get_layer("L-1").activity_regularizer.reg])
 
     #initialize activation matrices
-    acti_train = np.zeros((len(X_train), nb_clusters_per_parent, nb_reruns))
-    acti_test = np.zeros((len(X_test), nb_clusters_per_parent, nb_reruns))
+    acti_train = np.zeros((len(X_train), nb_all_seeds, nb_reruns))
+    acti_test = np.zeros((len(X_test), nb_all_seeds, nb_reruns))
 
     if validate_on_test_set:
         validation_data=(X_test, Y_test_parent)
@@ -90,8 +90,8 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model,
             metrics.get('vloss')[-1].append(history.history.get('val_loss')[0])
             metrics.get('vacc')[-1].append(history.history.get('val_acc')[0])
 
-            metrics.get('cl_acc')[-1].append(calculate_cl_acc(y_train, est_train, nb_clusters_per_parent, 0, False)[0])
-            metrics.get('cl_vacc')[-1].append(calculate_cl_acc(y_test, est_test, nb_clusters_per_parent, 0, False)[0])
+            metrics.get('cl_acc')[-1].append(calculate_cl_acc(y_train, est_train, nb_all_clusters, 0, False)[0])
+            metrics.get('cl_vacc')[-1].append(calculate_cl_acc(y_test, est_test, nb_all_clusters, 0, False)[0])
 
             metrics.get('affinity')[-1].append(acol_metrics[0])
             metrics.get('balance')[-1].append(acol_metrics[1])
