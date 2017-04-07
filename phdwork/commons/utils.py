@@ -94,10 +94,11 @@ def get_acception_rejection_activations(acti, nb_parents):
         parent = accepting_cluster%nb_parents
 
         #list of rejecting clusters
-        rejecting_clusters = range(parent, nb_all_clusters, nb_parents).remove(accepting_cluster)
+        rejecting_clusters = range(parent, nb_all_clusters, nb_parents)
+        rejecting_clusters.remove(accepting_cluster)
 
         #activation observed on accepting cluster and rejecting clusters
         acti_accepting_clusters.extend(acti[accepted_ind, accepting_cluster])
-        acti_rejecting_clusters.extend(acti[accepted_ind, rejecting_clusters])
+        acti_rejecting_clusters.extend(acti[accepted_ind, rejecting_clusters].ravel())
 
     return (acti_accepting_clusters, acti_rejecting_clusters)

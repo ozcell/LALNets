@@ -10,11 +10,13 @@ Functions to train and evaluate ACOL experiments.
 
 '''
 
-def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model, model_truncated,
+def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent,
+                                      model_def, model_params, optimizer,
                                       X_train, y_train, y_train_parent,
                                       X_test, y_test, y_test_parent,
-                                      optimizer, nb_reruns, nb_epoch, nb_dpoints, batch_size,
-                                      validate_on_test_set=True, c3_update_func=None):
+                                      nb_reruns, nb_epoch, nb_dpoints, batch_size,
+                                      validate_on_test_set=True, c3_update_func=None,
+                                      return_model=False):
 
     #find the values of the dependent variables used inside the script
     nb_all_clusters = nb_parents*nb_clusters_per_parent
@@ -62,7 +64,10 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model,
         for item in metrics.itervalues():
             item.append([])
 
-        #compile models for each rerun
+        #define and compile models for each run
+        model = model_def(model_params, False)
+        model_truncated = model_def(model_params, True)
+
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
         model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
 
@@ -128,4 +133,4 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model,
         print('Estimated remaining run time: ' + str(int((end-start)*(nb_reruns-(rerun+1)))) + ' sec')
         print("*" * 40)
 
-    return metrics, (acti_train, acti_test)
+    return metrics, (acti_train, acti_test), model if return_model else None
