@@ -62,7 +62,7 @@ class AcolRegularizer(Regularizer):
 
 # Aliases.
 
-ActivityRegularizer = ACOLRegularizer
+ActivityRegularizer = AcolRegularizer
 
 
 def activity_acol(c1=1., c2=1., c3=0., c4=0.000001,):
