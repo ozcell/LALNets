@@ -124,4 +124,4 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent, model,
         print('Estimated remaining run time: ' + str(int((end-start)*(nb_reruns-(rerun+1)))) + ' sec')
         print("*" * 40)
 
-    return metrics, acti_train, acti_test
+    return metrics, (acti_train, acti_test)
