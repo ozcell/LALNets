@@ -1,4 +1,5 @@
 import numpy as np
+import time
 from keras.utils import np_utils
 from keras import backend as K
 from phdwork.commons.utils import calculate_cl_acc, cumulate_acol_metrics
