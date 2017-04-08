@@ -11,7 +11,7 @@ Functions to train and evaluate ACOL experiments.
 '''
 
 def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent,
-                                      model_def, model_params, optimizer,
+                                      model_def_func, model_params, optimizer,
                                       X_train, y_train, y_train_parent,
                                       X_test, y_test, y_test_parent,
                                       nb_reruns, nb_epoch, nb_dpoints, batch_size,
@@ -68,8 +68,8 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent,
         model = model_def(*model_params)
         #define an identical but truncated model by removing AcolPooling and preceding activation
         model_truncated = model_def(*model_params)
-        model_truncated.layers.remove(model.get_layer("L-1_activation"))
-        model_truncated.layers.remove(model.get_layer("AcolPooling"))
+        model_truncated.layers.remove(model_truncated.get_layer("L-1_activation"))
+        model_truncated.layers.remove(model_truncated.get_layer("AcolPooling"))
 
         #and compile
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
