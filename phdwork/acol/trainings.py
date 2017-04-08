@@ -66,7 +66,7 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent,
 
         #add truncation info
         _model_params = model_params + (False,)
-        _model_truncated_params + (True,)
+        _model_truncated_params = model_params + (True,)
 
         #define models for each run
         model = model_def(*_model_params)
