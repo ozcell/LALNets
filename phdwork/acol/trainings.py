@@ -64,10 +64,15 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent,
         for item in metrics.itervalues():
             item.append([])
 
-        #define and compile models for each run
-        model = model_def(model_params + (False,))
-        model_truncated = model_def(model_params + (True,))
+        #add truncation info
+        _model_params = model_params + (False,)
+        _model_truncated_params + (True,)
 
+        #define models for each run
+        model = model_def(*_model_params)
+        model_truncated = model_def(*_model_truncated_params)
+
+        #and compile
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
         model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
 
