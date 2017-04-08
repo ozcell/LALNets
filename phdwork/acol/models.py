@@ -12,9 +12,8 @@ from phdwork.acol.layers.pooling import AveragePooling, MaxPooling
 from phdwork.acol.regularizers import activity_acol
 
 
-def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden_drop = True, acol_en = False,
-               acol_params=(5, 0, 1, 1, 0, 0.000001, 'average', False, 'identity_vstacked', False),
-               truncated = False):
+def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden_drop = True,
+               acol_params=(5, 0, 1, 1, 0, 0.000001, 'average', False, 'identity_vstacked', False)):
 
     nb_filters, nb_conv, nb_pool = conv_params
 
@@ -54,17 +53,13 @@ def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden
     model.add(Dense(2048, activation='relu'))
     model.add(Dropout(0.5)) if hidden_drop else model.add(Dropout(0.))
 
-    if acol_en == True:
-        model.add(Dense(nb_classes*K, activity_regularizer=activity_acol(c1, c2, c3, c4), name='L-1'))
-        model.add(Dropout(p)) if hidden_drop else model.add(Dropout(0.))
-        if not truncated:
-            model.add(Activation('softmax', name='L-1_activation'))
-            if null_node:
-                model.add(AcolPooling(nb_classes+1, trainable=trainable, init='column_vstacked_nullnode', name='AcolPooling'))
-            else:
-                model.add(AcolPooling(nb_classes, trainable=trainable, init=init, name='AcolPooling'))
+    model.add(Dense(nb_classes*K, activity_regularizer=activity_acol(c1, c2, c3, c4), name='L-1'))
+    model.add(Dropout(p)) if hidden_drop else model.add(Dropout(0.))
+    model.add(Activation('softmax', name='L-1_activation'))
+
+    if null_node:
+        model.add(AcolPooling(nb_classes+1, trainable=trainable, init='column_vstacked_nullnode', name='AcolPooling'))
     else:
-        model.add(Dense(nb_classes, activation='softmax',
-                        activity_regularizer=activity_acol(c1, c2, c3, c4), name='L-1'))
+        model.add(AcolPooling(nb_classes, trainable=trainable, init=init, name='AcolPooling'))
 
     return model
