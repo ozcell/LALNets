@@ -64,41 +64,50 @@ def cumulate_metrics(X, metric_func, batch_size=128):
 
     return metrics
 
-def get_acception_rejection_activations(acti, nb_parents):
-
-    """
-    Seperates the cluster activations into two group.
-
-    Returns:
-
-    acti_accepting_clusters: activation of the clusters observed wrt accepted samples
-    acti_rejecting_clusters: activations all other rejecting clusters
-
-    """
+def get_acception_activations(acti, nb_parents, acception_type='cluster_wise'):
 
     #get activation shape
     nb_samples, nb_all_clusters, nb_reruns = acti.shape
+    nb_clusters_per_parent = nb_all_clusters/nb_parents
 
     #initialize return variables
-    acti_accepting_clusters, acti_rejecting_clusters = [], []
+    acti_clusters = []
+    for i in range(nb_clusters_per_parent):
+        acti_clusters.append([])
 
     #reshape activation
     acti = acti.swapaxes(1,2).reshape(nb_samples*nb_reruns, nb_all_clusters)
 
-    for accepting_cluster in range(nb_all_clusters):
+    if acception_type == 'cluster_wise':
+        for accepting_cluster in range(nb_all_clusters):
 
-        #indices of samples accepted by accepting cluster
-        accepted_ind = (acti.argmax(axis=1)==accepting_cluster)
+            #indices of samples accepted by accepting cluster
+            accepted_ind = (acti.argmax(axis=1)==accepting_cluster)
 
-        #accepting cluster belongs to this parent
-        parent = accepting_cluster%nb_parents
+            #parent of this cluster
+            parent = accepting_cluster%nb_parents
 
-        #list of rejecting clusters
-        rejecting_clusters = range(parent, nb_all_clusters, nb_parents)
-        rejecting_clusters.remove(accepting_cluster)
+            #list of all clusters of parent
+            clusters = range(parent, nb_all_clusters, nb_parents)
 
-        #activation observed on accepting cluster and rejecting clusters
-        acti_accepting_clusters.extend(acti[accepted_ind, accepting_cluster])
-        acti_rejecting_clusters.extend(acti[accepted_ind, rejecting_clusters].ravel())
+            #list of rejecting clusters
+            rejecting_clusters = range(parent, nb_all_clusters, nb_parents)
+            rejecting_clusters.remove(accepting_cluster)
 
-    return (acti_accepting_clusters, acti_rejecting_clusters)
+            acti_clusters[0].extend(acti[accepted_ind, accepting_cluster])
+            for i in range(nb_clusters_per_parent-1):
+                acti_clusters[i+1].extend(acti[accepted_ind, rejecting_clusters[i]])
+
+    elif acception_type == 'parent_wise':
+        for parent in range(nb_parents):
+
+            #indices of samples accepted by accepting parent
+            accepted_ind = (acti.argmax(axis=1)%nb_parents==parent)
+
+            #list of all clusters of parent
+            clusters = range(parent, nb_all_clusters, nb_parents)
+
+            for i in range(nb_clusters_per_parent):
+                acti_clusters[i].extend(acti[accepted_ind, clusters[i]])
+
+    return acti_clusters

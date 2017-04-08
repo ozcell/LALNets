@@ -58,11 +58,11 @@ def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden
         model.add(Dense(nb_classes*K, activity_regularizer=activity_acol(c1, c2, c3, c4), name='L-1'))
         model.add(Dropout(p)) if hidden_drop else model.add(Dropout(0.))
         if not truncated:
-            model.add(Activation('softmax'))
+            model.add(Activation('softmax', name='L-1_activation'))
             if null_node:
-                model.add(AcolPooling(nb_classes+1, trainable=trainable, init='column_vstacked_nullnode'))
+                model.add(AcolPooling(nb_classes+1, trainable=trainable, init='column_vstacked_nullnode', name='AcolPooling'))
             else:
-                model.add(AcolPooling(nb_classes, trainable=trainable, init=init))
+                model.add(AcolPooling(nb_classes, trainable=trainable, init=init, name='AcolPooling'))
     else:
         model.add(Dense(nb_classes, activation='softmax',
                         activity_regularizer=activity_acol(c1, c2, c3, c4), name='L-1'))

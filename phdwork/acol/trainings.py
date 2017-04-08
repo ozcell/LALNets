@@ -109,8 +109,9 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent,
 
             #ACOL c3 update
             if c3_update_func is not None:
-                model.get_layer("L-1").activity_regularizer.c3.set_value(c3_update_func(acol_metrics))
-                model_truncated.get_layer("L-1").activity_regularizer.c3.set_value(c3_update_func(acol_metrics))
+                new_c3 = c3_update_func(acol_metrics, nb_epoch_per_dpoint*dpoint, verbose = 0)
+                model.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
+                model_truncated.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
 
             metrics.get('loss')[-1].append(history.history.get('loss')[0])
             metrics.get('acc')[-1].append(history.history.get('acc')[0])
