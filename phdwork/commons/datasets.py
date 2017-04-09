@@ -1,6 +1,6 @@
 from keras.datasets import mnist
 
-def load_mnist(order='tf'):
+def load_mnist(order='th'):
 
     # input image dimensions
     img_rows, img_cols, img_channels,  = 28, 28, 1
