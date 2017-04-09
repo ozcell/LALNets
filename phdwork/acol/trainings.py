@@ -227,14 +227,14 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
         only_original = False
 
+        if verbose == 1:
+            progbar = generic_utils.Progbar(nb_dpoints)
+            values=[('affinity', acol_metrics[0]), ('balance', acol_metrics[1]),
+                    ('coactivity', acol_metrics[2])]
+
+            progbar.add(0, values=values)
+
         for dpoint in range(nb_dpoints):
-
-            if verbose == 1:
-                progbar = generic_utils.Progbar(nb_dpoints)
-                values=[('affinity', acol_metrics[0]), ('balance', acol_metrics[1]),
-                        ('coactivity', acol_metrics[2])]
-
-                progbar.add(0, values=values)
 
             history = model.fit_pseudo(X_train, nb_pseudos,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint,
@@ -267,8 +267,6 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
             if set_only_original_func is not None:
                 only_original = set_only_original_func(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose = 0)
-            else:
-                only_original = False
 
             metrics.get('loss')[-1].append(history[0])
             metrics.get('acc')[-1].append(history[1])
