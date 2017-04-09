@@ -90,6 +90,9 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint,
                                 verbose=2, validation_data=validation_data)
 
+            history = history.history.values()
+            history = list(history[0][-1],history[1][-1],history[2][-1],history[3][-1])
+
             #transfer weights to truncated mirror of the model
             model_truncated.set_weights(model.get_weights())
 
@@ -114,10 +117,10 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
                 model.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
                 model_truncated.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
 
-            metrics.get('loss')[-1].append(history.history.get('loss')[0])
-            metrics.get('acc')[-1].append(history.history.get('acc')[0])
-            metrics.get('vloss')[-1].append(history.history.get('val_loss')[0])
-            metrics.get('vacc')[-1].append(history.history.get('val_acc')[0])
+            metrics.get('loss')[-1].append(history[0])
+            metrics.get('acc')[-1].append(history[1])
+            metrics.get('vloss')[-1].append(history[2])
+            metrics.get('vacc')[-1].append(history[3])
 
             metrics.get('cl_acc')[-1].append(_cl_acc[0])
             metrics.get('cl_vacc')[-1].append(_cl_vacc[0])

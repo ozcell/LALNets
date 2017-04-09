@@ -3,11 +3,15 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 
-def plot_class_means(nb_parents, nb_clusters_per_parent, est, test, cmap=None, boundary=None, sort=False, transpose=False, ax=None):
+def plot_class_means(nb_parents, nb_clusters_per_parent, est, test,
+                     cmap=None, boundary=None, sort=False, transpose=False, ax=None, dim_ordering='th'):
     if ax is None:
         ax = plt.gca()
+    if dim_ordering == 'tf':
+        n,h,w,d = test.shape
+    elif dim_ordering == 'th':
+        n,d,h,w = test.shape
 
-    n,h,w,d = test.shape
     if boundary is None:
         boundary = range(n)
 
