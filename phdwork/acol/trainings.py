@@ -288,14 +288,14 @@ def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
 
         #train model
         for X_batch, Y_batch in pseudo_batch_generator(X_train, batch_size, nb_pseudos, get_pseudos_func, only_original):
-            model.train_on_batch(X_batch, Y_batch)
+            self.train_on_batch(X_batch, Y_batch)
 
         #test on original training set
         count = 0
         history_train = np.zeros(2)
 
         for X_batch, Y_batch in pseudo_batch_generator(X_train, batch_size, nb_pseudos, get_pseudos_func, True):
-            history_train += model.test_on_batch(X_batch, Y_batch)
+            history_train += self.test_on_batch(X_batch, Y_batch)
             count += 1
 
         history_train /= count
@@ -309,7 +309,7 @@ def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
             history_test = np.zeros(2)
 
             for X_batch, Y_batch in pseudo_batch_generator(validation_data[0], batch_size, nb_pseudos, get_pseudos_func, True):
-                history_test += model.test_on_batch(X_batch, Y_batch)
+                history_test += self.test_on_batch(X_batch, Y_batch)
                 count += 1
 
             history_test /= count
