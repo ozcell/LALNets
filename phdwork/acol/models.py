@@ -27,27 +27,27 @@ def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden
 
     model = Sequential()
     model.add(Convolution2D(nb_filters, nb_conv, nb_conv,
-                            activation='relu', border_mode='same', dim_ordering='tf',
+                            activation='relu', border_mode='same', dim_ordering='th',
                             input_shape=input_shape))
     model.add(Convolution2D(nb_filters, nb_conv, nb_conv,
-                            activation='relu', border_mode='same', dim_ordering='tf'))
-    model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool), dim_ordering='tf'))
+                            activation='relu', border_mode='same', dim_ordering='th'))
+    model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool), dim_ordering='th'))
     model.add(Dropout(0.25)) if hidden_drop else model.add(Dropout(0.))
 
     if cnn_type>1:
         model.add(Convolution2D(nb_filters*2, nb_conv, nb_conv,
-                               activation='relu', border_mode='same', dim_ordering='tf'))
+                               activation='relu', border_mode='same', dim_ordering='th'))
         model.add(Convolution2D(nb_filters*2, nb_conv, nb_conv,
-                               activation='relu', border_mode='same', dim_ordering='tf'))
-        model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool), dim_ordering='tf'))
+                               activation='relu', border_mode='same', dim_ordering='th'))
+        model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool), dim_ordering='th'))
         model.add(Dropout(0.25)) if hidden_drop else model.add(Dropout(0.))
 
     if cnn_type>2:
         model.add(Convolution2D(nb_filters*4, nb_conv, nb_conv,
-                            activation='relu', border_mode='same', dim_ordering='tf'))
+                            activation='relu', border_mode='same', dim_ordering='th'))
         model.add(Convolution2D(nb_filters*4, nb_conv, nb_conv,
-                            activation='relu', border_mode='same', dim_ordering='tf'))
-        model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool), dim_ordering='tf'))
+                            activation='relu', border_mode='same', dim_ordering='th'))
+        model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool), dim_ordering='th'))
         model.add(Dropout(0.25)) if hidden_drop else model.add(Dropout(0.))
 
     model.add(Flatten())
