@@ -64,12 +64,13 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent,
         for item in metrics.itervalues():
             item.append([])
 
-        #define model for each run
-        model = model_def_func(*model_params)
-        #define an identical but truncated model by removing AcolPooling and preceding activation
-        model_truncated = model_def_func(*model_params)
-        model_truncated.layers.remove(model_truncated.get_layer("L-1_activation"))
-        model_truncated.layers.remove(model_truncated.get_layer("AcolPooling"))
+        #add truncation info
+        _model_params = model_params + (False,)
+        _model_truncated_params = model_params + (True,)
+
+        #define models for each run
+        model = model_def_func(*_model_params)
+        model_truncated = model_def_func(*_model_truncated_params)
 
         #and compile
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
