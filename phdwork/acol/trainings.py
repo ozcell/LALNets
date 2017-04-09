@@ -153,7 +153,8 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
                        get_pseudos_func,
                        nb_reruns, nb_epoch, nb_dpoints, batch_size,
                        validate_on_test_set=True, c3_update_func=None,
-                       return_model=False):
+                       set_only_original_func=None, return_model=False,
+                       verbose=1):
 
     #find the values of the dependent variables used inside the script
     nb_all_clusters = nb_pseudos*nb_clusters_per_pseudo
@@ -216,12 +217,29 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
                                   model.get_layer("L-1").activity_regularizer.coactivity,
                                   model.get_layer("L-1").activity_regularizer.reg])
 
+        #get ACOL metrics, affinity, balance, coactivity and regularization cost
+        acol_metrics = cumulate_metrics(X_train, get_metrics, batch_size)
+
+        metrics.get('affinity')[-1].append(acol_metrics[0])
+        metrics.get('balance')[-1].append(acol_metrics[1])
+        metrics.get('coactivity')[-1].append(acol_metrics[2])
+        metrics.get('reg')[-1].append(acol_metrics[3])
+
+        only_original = False
+
         for dpoint in range(nb_dpoints):
+
+            if verbose == 1:
+                progbar = generic_utils.Progbar(nb_dpoints)
+                values=[('affinity', acol_metrics[0], ('balance', acol_metrics[1],
+                        ('coactivity', acol_metrics[2])]
+
+                progbar.add(0, values=values)
 
             history = model.fit_pseudo(X_train, nb_pseudos,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint,
-                                get_pseudos_func=get_pseudos_func, validation_data=validation_data)
-
+                                get_pseudos_func=get_pseudos_func, validation_data=validation_data,
+                                only_original=only_original)
 
             #transfer weights to truncated mirror of the model
             model_truncated.set_weights(model.get_weights())
@@ -247,6 +265,11 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
                 model.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
                 model_truncated.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
 
+            if set_only_original_func is not None:
+                only_original = set_only_original_func(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose = 0)
+            else:
+                only_original = False
+
             metrics.get('loss')[-1].append(history[0])
             metrics.get('acc')[-1].append(history[1])
             metrics.get('vloss')[-1].append(history[2])
@@ -260,9 +283,16 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
             metrics.get('coactivity')[-1].append(acol_metrics[2])
             metrics.get('reg')[-1].append(acol_metrics[3])
 
-            print("*" * 40)
-            print('End of epoch ' + str((dpoint+1)*nb_epoch_per_dpoint) + ' of rerun ' + str(rerun+1))
-            print("*" * 40)
+            if verbose == 1:
+                values=[('cl_acc', _cl_acc[0]), ('cl_vacc', _cl_vacc[0]),
+                        ('affinity', acol_metrics[0], ('balance', acol_metrics[1],
+                        ('coactivity', acol_metrics[2])]
+
+                progbar.add((dpoint+1)*nb_epoch_per_dpoint, values=values)
+            elif verbose == 2:
+                print("*" * 40)
+                print('End of epoch ' + str((dpoint+1)*nb_epoch_per_dpoint) + ' of rerun ' + str(rerun+1))
+                print("*" * 40)
 
         acti_train[:,:,rerun] = model_truncated.predict(X_train, batch_size=batch_size)
         acti_test[:,:,rerun] = model_truncated.predict(X_test, batch_size=batch_size)
