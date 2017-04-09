@@ -11,13 +11,13 @@ Functions to train and evaluate ACOL experiments.
 
 '''
 
-def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent,
-                                      model_def_func, model_params, optimizer,
-                                      X_train, y_train, y_train_parent,
-                                      X_test, y_test, y_test_parent,
-                                      nb_reruns, nb_epoch, nb_dpoints, batch_size,
-                                      validate_on_test_set=True, c3_update_func=None,
-                                      return_model=False):
+def train_with_parents(nb_parents, nb_clusters_per_parent,
+                       model_def_func, model_params, optimizer,
+                       X_train, y_train, y_train_parent,
+                       X_test, y_test, y_test_parent,
+                       nb_reruns, nb_epoch, nb_dpoints, batch_size,
+                       validate_on_test_set=True, c3_update_func=None,
+                       return_model=False):
 
     #find the values of the dependent variables used inside the script
     nb_all_clusters = nb_parents*nb_clusters_per_parent
@@ -143,13 +143,14 @@ def train_acol_models_for_parentvised(nb_parents, nb_clusters_per_parent,
     return metrics, (acti_train, acti_test), model if return_model else None
 
 
-def train_acol_models_for_parentvised_v2(nb_pseudos, nb_clusters_per_pseudo,
-                                      model_def_func, model_params, optimizer,
-                                      X_train, y_train,
-                                      X_test, y_test,
-                                      nb_reruns, nb_epoch, nb_dpoints, batch_size,
-                                      validate_on_test_set=True, c3_update_func=None,
-                                      return_model=False):
+def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
+                       model_def_func, model_params, optimizer,
+                       X_train, y_train,
+                       X_test, y_test,
+                       get_pseudos_func,
+                       nb_reruns, nb_epoch, nb_dpoints, batch_size,
+                       validate_on_test_set=True, c3_update_func=None,
+                       return_model=False):
 
     #find the values of the dependent variables used inside the script
     nb_all_clusters = nb_pseudos*nb_clusters_per_pseudo
@@ -320,6 +321,7 @@ def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
 
 
     return history_train
+
 
 Model.fit_pseudo = fit_pseudo
 
