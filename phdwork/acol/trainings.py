@@ -91,7 +91,7 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
                                 verbose=2, validation_data=validation_data)
 
             history = history.history.values()
-            history = [history[0][-1],history[1][-1],history[2][-1],history[3][-1]])
+            history = [history[0][-1],history[1][-1],history[2][-1],history[3][-1]]
 
             #transfer weights to truncated mirror of the model
             model_truncated.set_weights(model.get_weights())
