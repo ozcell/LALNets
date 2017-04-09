@@ -231,7 +231,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
             if verbose == 1:
                 progbar = generic_utils.Progbar(nb_dpoints)
-                values=[('affinity', acol_metrics[0], ('balance', acol_metrics[1],
+                values=[('affinity', acol_metrics[0]), ('balance', acol_metrics[1]),
                         ('coactivity', acol_metrics[2])]
 
                 progbar.add(0, values=values)
@@ -285,7 +285,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
             if verbose == 1:
                 values=[('cl_acc', _cl_acc[0]), ('cl_vacc', _cl_vacc[0]),
-                        ('affinity', acol_metrics[0], ('balance', acol_metrics[1],
+                        ('affinity', acol_metrics[0]), ('balance', acol_metrics[1]),
                         ('coactivity', acol_metrics[2])]
 
                 progbar.add((dpoint+1)*nb_epoch_per_dpoint, values=values)
