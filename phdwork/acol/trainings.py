@@ -83,7 +83,7 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
 
         #print stats
         print_stats(verbose, 1, test_data=test_data, X_train=X_train,
-                    nb_pseudos=nb_pseudos, acol_metrics=acol_metrics,
+                    nb_pseudos=nb_parents, acol_metrics=acol_metrics,
                     cl_acc=[cl_acc, cl_vacc])
 
         for dpoint in range(nb_dpoints):
