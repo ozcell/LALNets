@@ -253,7 +253,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         rerun_end = time.time()
 
         #print stats
-        print_stats(verbose, 3 rerun_start, rerun_end, nb_reruns, rerun)
+        print_stats(verbose, 3, rerun_start, rerun_end, nb_reruns, rerun)
 
     return metrics, (acti_train, acti_test), model if return_model else None
 
