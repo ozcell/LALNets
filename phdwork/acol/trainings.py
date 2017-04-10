@@ -170,7 +170,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
     for rerun in range(nb_reruns):
 
-        start = time.time()
+        start_rerun = time.time()
 
         #extend each list for each rerun
         for item in metrics.itervalues():
@@ -210,12 +210,9 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         #update experiment metrics
         update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
 
-        if verbose == 1:
-            progbar = generic_utils.Progbar(nb_dpoints*nb_epoch_per_dpoint)
-            values=[('a', acol_metrics[0]), ('b', acol_metrics[1]),
-                    ('c', acol_metrics[2])]
-
-            progbar.add(0, values=values)
+        #print stats
+        print_stats(verbose, 1, validation_data, X_train, nb_pseudos,
+                    acol_metrics, [cl_acc, cl_vacc])
 
         for dpoint in range(nb_dpoints):
 
@@ -236,35 +233,27 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
             #ACOL c3 update
             if c3_update_func is not None:
-                new_c3 = c3_update_func(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose = 0)
+                new_c3 = c3_update_func(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose=verbose)
                 model.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
                 model_truncated.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
 
             if set_only_original_func is not None:
-                only_original = set_only_original_func(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose = 0)
+                only_original = set_only_original_func(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose=verbose)
 
             #update experiment metrics
             update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
 
-            if verbose == 1:
-                values=[('ca', cl_acc[0]), ('cva', cl_vacc[0]),
-                        ('a', acol_metrics[0]), ('b', acol_metrics[1]),
-                        ('c', acol_metrics[2])]
-
-                progbar.add(nb_epoch_per_dpoint, values=values)
-            elif verbose == 2:
-                print("*" * 40)
-                print('End of epoch ' + str((dpoint+1)*nb_epoch_per_dpoint) + ' of rerun ' + str(rerun+1))
-                print("*" * 40)
+            #print stats
+            print_stats(verbose, 2, validation_data, rerun, dpoint,
+                        nb_epoch_per_dpoint, acol_metrics, [cl_acc, cl_vacc])
 
         acti_train[:,:,rerun] = model_truncated.predict(X_train, batch_size=batch_size)
         acti_test[:,:,rerun] = model_truncated.predict(X_test, batch_size=batch_size)
 
-        end = time.time()
+        rerun_end = time.time()
 
-        print("*" * 40)
-        print('Estimated remaining run time: ' + str(int((end-start)*(nb_reruns-(rerun+1)))) + ' sec')
-        print("*" * 40)
+        #print stats
+        print_stats(verbose, 3 rerun_start, rerun_end, nb_reruns, rerun)
 
     return metrics, (acti_train, acti_test), model if return_model else None
 
@@ -272,12 +261,6 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
                get_pseudos_func, train=True, validation_data=None,
                train_on_only_original=False, validate_on_only_original=True):
-
-    if validation_data is not None:
-        print('\nTrain on %d samples, validate on %d samples' %
-              (len(X_train)*nb_pseudos, len(validation_data[0])))
-    else:
-        print('\nTrain on %d samples' % (len(X_train)*nb_pseudos))
 
     progbar = generic_utils.Progbar(nb_epoch)
 
@@ -287,42 +270,36 @@ def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
             #train model
             for X_batch, Y_batch in pseudo_batch_generator(X_train, batch_size,
                 nb_pseudos, get_pseudos_func, train_on_only_original):
-
                 self.train_on_batch(X_batch, Y_batch)
 
         #test on original training set
         count = 0
         history_train = np.zeros(2)
-
         for X_batch, Y_batch in pseudo_batch_generator(X_train, batch_size,
             nb_pseudos, get_pseudos_func, validate_on_only_original):
-
             history_train += self.test_on_batch(X_batch, Y_batch)
             count += 1
-
         history_train /= count
         history_train = list(history_train)
         values=[('loss', history_train[0]), ('acc', history_train[1])]
 
         #test on original test set if validate_on_test_set is True
         if validation_data is not None:
-
             count = 0
             history_test = np.zeros(2)
-
             for X_batch, Y_batch in pseudo_batch_generator(validation_data[0],
                 batch_size, nb_pseudos, get_pseudos_func, validate_on_only_original):
-
                 history_test += self.test_on_batch(X_batch, Y_batch)
                 count += 1
-
             history_test /= count
             history_test = list(history_test)
             values.extend([('val_loss', history_test[0]), ('val_acc', history_test[1])])
             history_train.extend(history_test)
+        else:
+            values.extend([('val_loss', 'N/A'), ('val_acc', 'N/A')])
+            history_train.extend(history_test)
 
         progbar.add(1, values=values)
-
 
     return history_train
 
@@ -330,14 +307,13 @@ def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
 Model.fit_pseudo = fit_pseudo
 
 
-def pseudo_batch_generator(X_train, batch_size, nb_pseudos, get_pseudos_func, only_original):
+def pseudo_batch_generator(X, batch_size, nb_pseudos, get_pseudos_func, only_original):
 
+    #initialize shuffled ind
     if only_original:
-        #create a suffled index equal to original dataset size
-        ind = np.random.permutation(len(X_train))
+        ind = np.random.permutation(len(X))
     else:
-        #create a suffled index equal to original dataset size * nb_pseudos
-        ind = np.random.permutation(nb_pseudos*len(X_train))
+        ind = np.random.permutation(nb_pseudos*len(X))
 
     for ind_batch_start in range(0, len(ind), batch_size):
 
@@ -347,14 +323,18 @@ def pseudo_batch_generator(X_train, batch_size, nb_pseudos, get_pseudos_func, on
         else:
             ind_batch = ind[ind_batch_start:ind_batch_start+batch_size]
 
-        X_batch = X_train[ind_batch%len(X_train),]
+        #ind_batch%len(X) --> which sample
+        #ind_batch/len(X) --> which pseudo label
 
+        #take a batch of X depending of the remainder
+        X_batch = X[ind_batch%len(X),]
+
+        #create pseudo labels
         if only_original:
-            #create all zeros output labels
-            y_batch = np.zeros_like(ind_batch)
+            y_batch = np.zeros_like(ind_batch) #create all zeros output labels
         else:
-            #create suffled eqaully distributed labels with values 0 to nb_pseudos
-            y_batch = ind_batch/len(X_train)
+            y_batch = ind_batch/len(X) #create suffled eqaully distributed
+                                             #labels with values 0 to nb_pseudos
 
         #in case if nb_pseudos=1 to support null_node
         if nb_pseudos > 1:
@@ -362,24 +342,26 @@ def pseudo_batch_generator(X_train, batch_size, nb_pseudos, get_pseudos_func, on
         else:
             Y_batch = np_utils.to_categorical(y_batch, nb_pseudos+1)
 
+        #transform X according to pseudo labels
         for pseudo in range(nb_pseudos):
             X_batch[y_batch==pseudo,] = get_pseudos_func(X_batch[y_batch==pseudo,], pseudo)
-
 
         yield X_batch, Y_batch
 
 
-def evaluate_clustering(self, X, y, nb_all_clusters, batch_size=128, cluster_offset=0, label_correction=False):
+def evaluate_clustering(self, X, y, nb_all_clusters, batch_size=128,
+                    cluster_offset=0, label_correction=False, verbose=verbose):
 
     #calculate clustering accuracy
     est = self.predict_classes(X, batch_size=batch_size, verbose=0)
     cl_acc = calculate_cl_acc(y, est, nb_all_clusters, cluster_offset, label_correction)
 
     #Check if clustering accuracy is calculated over entire dataset
-    if cl_acc[1] != len(X):
-        print("!" * 40)
-        print('Warning! Check cluster accuracy calcualtions. Consider label_correction.')
-        print("!" * 40)
+    if verbose == 1:
+        if cl_acc[1] != len(X):
+            print("!" * 40)
+            print('Warning! Check cluster accuracy calcualtions. Consider label_correction.')
+            print("!" * 40)
 
     return cl_acc[0]
 
@@ -452,3 +434,58 @@ def initialize_training_variables(nb_pseudos, nb_clusters_per_pseudo,
     acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
 
     return metrics, (Y_train, Y_test), (acti_train, acti_test), nb_all_clusters, nb_classes, nb_epoch_per_dpoint
+
+def print_stats(verbose, stat_type, **kwargs) :
+
+    if verbose:
+
+        if stat_type == 1:
+
+            validation_data = kwargs.get('validation_data')
+            X_train = kwargs.get('X_train')
+            nb_pseudos = kwargs.get('nb_pseudos')
+            if X_train is not None and nb_pseudos is not None:
+                if validation_data is not None:
+                    print('Train on %d samples, validate on %d samples' %
+                          (len(X_train)*nb_pseudos, len(validation_data[0])))
+                else:
+                    print('Train on %d samples' % (len(X_train)*nb_pseudos))
+
+            acol_metrics = kwargs.get('acol_metrics')
+            cl_acc = kwargs.get('cl_acc')
+            print("*" * 40)
+            if acol_metrics is not None:
+                print('Stats before training:')
+                print('ACOL metrics: Affinity: %.3f, Balance: %.3f, Coactivity: %.3f' %
+                     (acol_metrics[0], acol_metrics[1], acol_metrics[2]))
+            if cl_acc is not None:
+                print('Clustering accuracy: On training set: %.3f, On validation set: %.3f' %
+                     (cl_acc[0], cl_acc[1]))
+            print("*" * 40)
+
+        elif stat_type == 2:
+            acol_metrics = kwargs.get('acol_metrics')
+            cl_acc = kwargs.get('cl_acc')
+            rerun = kwargs.get('rerun')
+            dpoint = kwargs.get('dpoint')
+            nb_epoch_per_dpoint = kwargs.get('nb_epoch_per_dpoint')
+            print("*" * 40)
+            if rerun is not None and dpoint is not None and nb_epoch_per_dpoint is not None:
+                print('Stats at epoch ' + str((dpoint+1)*nb_epoch_per_dpoint) + ' of rerun ' + str(rerun+1))
+            if acol_metrics is not None:
+                print('ACOL metrics: Affinity: %.3f, Balance: %.3f, Coactivity: %.3f' %
+                     (acol_metrics[0], acol_metrics[1], acol_metrics[2]))
+            if cl_acc is not None:
+                print('Clustering accuracy: On training set: %.3f, On validation set: %.3f' %
+                     (cl_acc[0], cl_acc[1]))
+            print("*" * 40)
+
+        elif stat_type == 3:
+            rerun_start = kwargs.get('rerun_start')
+            rerun_end = kwargs.get('rerun_end')
+            nb_reruns = kwargs.get('nb_reruns')
+            rerun = kwargs.get('rerun')
+            print("*" * 40)
+            if rerun_start is not None and rerun_end is not None and nb_reruns is not None and rerun is not None:
+                print('Estimated remaining run time: ' + str(int((rerun_end-rerun_start)*(nb_reruns-(rerun+1)))) + ' sec')
+            print("*" * 40)
