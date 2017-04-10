@@ -383,9 +383,12 @@ def pseudo_batch_generator(X, batch_size, nb_pseudos, get_pseudos, original_only
         if original_only:
             y_batch = np.zeros(sum(batch_size))                                 #create all zeros output labels
         else:
-            y_batch = conc((ind_batch/len(X[0]),
-                            perm(batch_size[1])%nb_pseudos))                    #create suffled eqaully distributed
-                                                                                #labels with values 0 to nb_pseudos
+            if batch_size[1]:
+                y_batch = conc((ind_batch/len(X[0]),                            #create suffled eqaully distributed
+                            perm(batch_size[1])%nb_pseudos))                    #labels with values 0 to nb_pseudos
+            else:
+                y_batch = ind_batch/len(X[0])
+
         #in case if nb_pseudos=1 to support null_node
         if nb_pseudos > 1:
             Y_batch = np_utils.to_categorical(y_batch, nb_pseudos)
