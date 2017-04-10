@@ -19,13 +19,22 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
                        validate_on_test_set=True, c3_update_func=None,
                        return_model=False):
 
-    (metrics, (Y_train, Y_test), (Y_train_parent, Y_test_parent),
-    (acti_train, acti_test), nb_all_clusters, nb_classes,
-    nb_epoch_per_dpoint) = initialize_training_variables(nb_parents=nb_parents,
-                nb_clusters_per_parent=nb_clusters_per_parent, y_train=y_train,
-                y_test=y_test, y_train_parent=y_train_parent,
-                y_test_parent=y_test_parent, nb_reruns=nb_reruns,
-                nb_epoch=nb_epoch, nb_dpoints=nb_dpoints)
+    #find the values of the dependent variables used inside the script
+    nb_all_clusters = nb_parents*nb_clusters_per_parent
+
+    # y to Y conversion for original dataset
+    nb_classes = y_train.max() - y_train.min() + 1
+    Y_train = np_utils.to_categorical(y_train, nb_classes)
+    Y_test = np_utils.to_categorical(y_test, nb_classes)
+    Y_train_parent = np_utils.to_categorical(y_train_parent, nb_parents)
+    Y_test_parent = np_utils.to_categorical(y_test_parent, nb_parents)
+
+    nb_epoch_per_dpoint = nb_epoch/nb_dpoints
+
+    metrics = initialize_metrics()
+
+    acti_train = np.zeros((len(y_train), nb_all_clusters, nb_reruns))
+    acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
 
     if validate_on_test_set:
         validation_data=(X_test, Y_test_parent)
@@ -125,11 +134,20 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
                        set_only_original_func=None, return_model=False,
                        verbose=1):
 
-    (metrics, (Y_train, Y_test), _, (acti_train, acti_test), nb_all_clusters,
-    nb_classes, nb_epoch_per_dpoint) = initialize_training_variables(nb_pseudos=nb_pseudos,
-                    nb_clusters_per_pseudo=nb_clusters_per_pseudo,
-                    y_train=y_train, y_test=y_test, nb_reruns=nb_reruns,
-                    nb_epoch=nb_epoch, nb_dpoints=nb_dpoints)
+    #find the values of the dependent variables used inside the script
+    nb_all_clusters = nb_pseudos*nb_clusters_per_pseudo
+
+    # y to Y conversion for original dataset
+    nb_classes = y_train.max() - y_train.min() + 1
+    Y_train = np_utils.to_categorical(y_train, nb_classes)
+    Y_test = np_utils.to_categorical(y_test, nb_classes)
+
+    nb_epoch_per_dpoint = nb_epoch/nb_dpoints
+
+    metrics = initialize_metrics()
+
+    acti_train = np.zeros((len(y_train), nb_all_clusters, nb_reruns))
+    acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
 
     if validate_on_test_set:
         validation_data=(X_test, )
@@ -373,46 +391,7 @@ def update_metrics(metrics, history, cl_acc, acol_metrics):
     metrics.get('reg')[-1].append(acol_metrics[3])
 
 
-def initialize_training_variables(**kwargs):
-
-    #find the values of the dependent variables used inside the script
-    nb_pseudos = kwargs.get('nb_pseudos')
-    nb_clusters_per_pseudo = kwargs.get('nb_clusters_per_pseudo')
-    if nb_pseudos is not None and nb_clusters_per_pseudo is not None:
-        nb_all_clusters = nb_pseudos*nb_clusters_per_pseudo
-
-    nb_parents = kwargs.get('nb_parents')
-    nb_clusters_per_parent = kwargs.get('nb_clusters_per_parent')
-    if nb_parents is not None and nb_clusters_per_parent is not None:
-        nb_all_clusters = nb_parents*nb_clusters_per_parent
-
-    # y to Y conversion for original dataset
-    y_train = kwargs.get('y_train')
-    if y_train is not None:
-        nb_classes = y_train.max() - y_train.min() + 1
-        Y_train = np_utils.to_categorical(y_train, nb_classes)
-    y_test = kwargs.get('y_test')
-    if y_test is not None:
-        Y_test = np_utils.to_categorical(y_test, nb_classes)
-
-    y_train_parent = kwargs.get('y_train_parent')
-    if y_train_parent is not None:
-        Y_train_parent = np_utils.to_categorical(y_train_parent, nb_parents)
-    y_test_parent = kwargs.get('y_test_parent')
-    if y_test_parent is not None:
-        Y_test_parent = np_utils.to_categorical(y_test_parent, nb_parents)
-
-    nb_epoch = kwargs.get('nb_epoch')
-    nb_dpoints = kwargs.get('nb_dpoints')
-    if nb_epoch is not None and nb_dpoints is not None:
-        nb_epoch_per_dpoint = nb_epoch/nb_dpoints
-
-    #initialize activation matrices
-    nb_reruns = kwargs.get('nb_reruns')
-    if y_train is not None and nb_all_clusters is not None and nb_reruns is not None:
-        acti_train = np.zeros((len(y_train), nb_all_clusters, nb_reruns))
-    if y_test is not None and nb_all_clusters is not None and nb_reruns is not None:
-        acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
+def initialize_metrics():
 
     #initialize evaluation metrics
     loss, vloss = [], []
@@ -430,8 +409,7 @@ def initialize_training_variables(**kwargs):
                'coactivity': coactivity,
                'reg': reg}
 
-    return (metrics, (Y_train, Y_test), (Y_train_parent, Y_test_parent), (acti_train, acti_test),
-            nb_all_clusters, nb_classes, nb_epoch_per_dpoint)
+    return metrics
 
 def print_stats(verbose, stat_type, **kwargs) :
 
