@@ -204,8 +204,8 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         acol_metrics = cumulate_metrics(X_train, get_metrics, batch_size)
 
         #calculate clustering accuracy
-        cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size)
-        cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, batch_size)
+        cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size, verbose=verbose)
+        cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, batch_size, verbose=verbose)
 
         #update experiment metrics
         update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
@@ -228,8 +228,8 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
             acol_metrics = cumulate_metrics(X_train, get_metrics, batch_size)
 
             #calculate clustering accuracy
-            cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size)
-            cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, batch_size)
+            cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size, verbose=verbose)
+            cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, batch_size, verbose=verbose)
 
             #ACOL c3 update
             if c3_update_func is not None:
@@ -350,7 +350,7 @@ def pseudo_batch_generator(X, batch_size, nb_pseudos, get_pseudos_func, only_ori
 
 
 def evaluate_clustering(self, X, y, nb_all_clusters, batch_size=128,
-                    cluster_offset=0, label_correction=False, verbose=verbose):
+                    cluster_offset=0, label_correction=False, verbose=0):
 
     #calculate clustering accuracy
     est = self.predict_classes(X, batch_size=batch_size, verbose=0)
