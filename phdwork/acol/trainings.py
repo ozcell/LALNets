@@ -198,7 +198,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         history = model.fit_pseudo(X_train, nb_pseudos,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=False,
                                 get_pseudos_func=get_pseudos_func, validation_data=validation_data,
-                                train_on_only_original=only_original)
+                                train_on_only_original=only_original, verbose=0)
 
         #get ACOL metrics, affinity, balance, coactivity and regularization cost
         acol_metrics = cumulate_metrics(X_train, get_metrics, batch_size)
@@ -211,15 +211,16 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
 
         #print stats
-        print_stats(verbose, 1, validation_data, X_train, nb_pseudos,
-                    acol_metrics, [cl_acc, cl_vacc])
+        print_stats(verbose, 1, validation_data=validation_data, X_train=X_train,
+                    nb_pseudos=nb_pseudos, acol_metrics=acol_metrics,
+                    cl_acc=[cl_acc, cl_vacc])
 
         for dpoint in range(nb_dpoints):
 
             history = model.fit_pseudo(X_train, nb_pseudos,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=True,
                                 get_pseudos_func=get_pseudos_func, validation_data=validation_data,
-                                train_on_only_original=only_original)
+                                train_on_only_original=only_original, verbose=verbose)
 
             #transfer weights to truncated mirror of the model
             model_truncated.set_weights(model.get_weights())
@@ -244,8 +245,9 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
             update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
 
             #print stats
-            print_stats(verbose, 2, validation_data, rerun, dpoint,
-                        nb_epoch_per_dpoint, acol_metrics, [cl_acc, cl_vacc])
+            print_stats(verbose, 2, validation_data=validation_data, rerun=rerun,
+                        dpoint=dpoint, nb_epoch_per_dpoint=nb_epoch_per_dpoint,
+                        acol_metrics=acol_metrics, cl_acc=[cl_acc, cl_vacc])
 
         acti_train[:,:,rerun] = model_truncated.predict(X_train, batch_size=batch_size)
         acti_test[:,:,rerun] = model_truncated.predict(X_test, batch_size=batch_size)
@@ -253,16 +255,18 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         rerun_end = time.time()
 
         #print stats
-        print_stats(verbose, 3, rerun_start, rerun_end, nb_reruns, rerun)
+        print_stats(verbose, 3, rerun_start=rerun_start, rerun_end=rerun_end,
+                    nb_reruns=nb_reruns, rerun=rerun)
 
     return metrics, (acti_train, acti_test), model if return_model else None
 
 
 def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
                get_pseudos_func, train=True, validation_data=None,
-               train_on_only_original=False, validate_on_only_original=True):
+               train_on_only_original=False, validate_on_only_original=True, verbose=1):
 
-    progbar = generic_utils.Progbar(nb_epoch)
+    if verbose:
+        progbar = generic_utils.Progbar(nb_epoch)
 
     for epoch in range(nb_epoch):
 
@@ -299,7 +303,8 @@ def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
             values.extend([('val_loss', 'N/A'), ('val_acc', 'N/A')])
             history_train.extend(history_test)
 
-        progbar.add(1, values=values)
+        if verbose:
+            progbar.add(1, values=values)
 
     return history_train
 
