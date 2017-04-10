@@ -19,38 +19,11 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
                        validate_on_test_set=True, c3_update_func=None,
                        return_model=False):
 
-    #find the values of the dependent variables used inside the script
-    nb_all_clusters = nb_parents*nb_clusters_per_parent
-    nb_classes = y_train.max() - y_train.min() + 1
-    nb_epoch_per_dpoint = nb_epoch/nb_dpoints
-
-    # y to Y conversion for original dataset
-    Y_train = np_utils.to_categorical(y_train, nb_classes)
-    Y_test = np_utils.to_categorical(y_test, nb_classes)
-
-    # y to Y conversion for parent dataset
-    Y_train_parent = np_utils.to_categorical(y_train_parent, nb_parents)
-    Y_test_parent = np_utils.to_categorical(y_test_parent, nb_parents)
-
-    #initialize evaluation metrics
-    loss, vloss = [], []
-    acc, vacc = [], []
-    cl_acc, cl_vacc = [], []
-    affinity, balance, coactivity, reg  = [], [], [], []
-    metrics = {'loss': loss,
-               'vloss': vloss,
-               'acc': acc,
-               'vacc': vacc,
-               'cl_acc': cl_acc,
-               'cl_vacc': cl_vacc,
-               'affinity': affinity,
-               'balance': balance,
-               'coactivity': coactivity,
-               'reg': reg}
-
-    #initialize activation matrices
-    acti_train = np.zeros((len(X_train), nb_all_clusters, nb_reruns))
-    acti_test = np.zeros((len(X_test), nb_all_clusters, nb_reruns))
+    (metrics, (Y_train, Y_test), (Y_train_parent, Y_test_parent),
+    (acti_train, acti_test), nb_all_clusters, nb_classes,
+    nb_epoch_per_dpoint) = initialize_training_variables(nb_parents,
+                                nb_clusters_per_parent, y_train, y_test,
+                                nb_reruns, nb_epoch, nb_dpoints)
 
     if validate_on_test_set:
         validation_data=(X_test, Y_test_parent)
@@ -59,7 +32,7 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
 
     for rerun in range(nb_reruns):
 
-        start = time.time()
+        rerun_start = time.time()
 
         #extend each list for each rerun
         for item in metrics.itervalues():
@@ -78,11 +51,22 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
         model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
 
         #define a Theano function to reach values of ACOL metrics
-        get_metrics = K.function([model.layers[0].input, K.learning_phase()],
-                                 [model.get_layer("L-1").activity_regularizer.affinity,
-                                  model.get_layer("L-1").activity_regularizer.balance,
-                                  model.get_layer("L-1").activity_regularizer.coactivity,
-                                  model.get_layer("L-1").activity_regularizer.reg])
+        get_metrics = model.define_get_metrics()
+
+        #get ACOL metrics, affinity, balance, coactivity and regularization cost
+        acol_metrics = cumulate_metrics(X_train, get_metrics, batch_size)
+
+        #calculate clustering accuracy
+        cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size, verbose=verbose)
+        cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, batch_size, verbose=verbose)
+
+        #update experiment metrics
+        update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
+
+        #print stats
+        print_stats(verbose, 1, validation_data=validation_data, X_train=X_train,
+                    nb_pseudos=nb_pseudos, acol_metrics=acol_metrics,
+                    cl_acc=[cl_acc, cl_vacc])
 
         for dpoint in range(nb_dpoints):
 
@@ -100,48 +84,31 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
             acol_metrics = cumulate_metrics(X_train, get_metrics, batch_size)
 
             #calculate clustering accuracy
-            est_train = model_truncated.predict_classes(X_train, batch_size=batch_size, verbose=0)
-            est_test = model_truncated.predict_classes(X_test, batch_size=batch_size, verbose=0)
-            _cl_acc = calculate_cl_acc(y_train, est_train, nb_all_clusters, 0, False)
-            _cl_vacc = calculate_cl_acc(y_test, est_test, nb_all_clusters, 0, False)
-
-            #Check if clustering accuracy is calculated over entire dataset
-            if (_cl_acc[1] != len(X_train)) or (_cl_vacc[1] != len(X_test)):
-                print("!" * 40)
-                print('Warning! Check cluster accuracy calcualtions. Consider label_correction.')
-                print("!" * 40)
+            cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size, verbose=verbose)
+            cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, batch_size, verbose=verbose)
 
             #ACOL c3 update
             if c3_update_func is not None:
-                new_c3 = c3_update_func(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose = 0)
+                new_c3 = c3_update_func(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose=verbose)
                 model.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
                 model_truncated.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
 
-            metrics.get('loss')[-1].append(history[0])
-            metrics.get('acc')[-1].append(history[1])
-            metrics.get('vloss')[-1].append(history[2])
-            metrics.get('vacc')[-1].append(history[3])
+            #update experiment metrics
+            update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
 
-            metrics.get('cl_acc')[-1].append(_cl_acc[0])
-            metrics.get('cl_vacc')[-1].append(_cl_vacc[0])
-
-            metrics.get('affinity')[-1].append(acol_metrics[0])
-            metrics.get('balance')[-1].append(acol_metrics[1])
-            metrics.get('coactivity')[-1].append(acol_metrics[2])
-            metrics.get('reg')[-1].append(acol_metrics[3])
-
-            print("*" * 40)
-            print('End of epoch ' + str((dpoint+1)*nb_epoch_per_dpoint) + ' of rerun ' + str(rerun+1))
-            print("*" * 40)
+            #print stats
+            print_stats(verbose, 2, validation_data=validation_data, rerun=rerun,
+                        dpoint=dpoint, nb_epoch_per_dpoint=nb_epoch_per_dpoint,
+                        acol_metrics=acol_metrics, cl_acc=[cl_acc, cl_vacc])
 
         acti_train[:,:,rerun] = model_truncated.predict(X_train, batch_size=batch_size)
         acti_test[:,:,rerun] = model_truncated.predict(X_test, batch_size=batch_size)
 
-        end = time.time()
+        rerun_end = time.time()
 
-        print("*" * 40)
-        print('Estimated remaining run time: ' + str(int((end-start)*(nb_reruns-(rerun+1)))) + ' sec')
-        print("*" * 40)
+        #print stats
+        print_stats(verbose, 3, rerun_start=rerun_start, rerun_end=rerun_end,
+                    nb_reruns=nb_reruns, rerun=rerun)
 
     return metrics, (acti_train, acti_test), model if return_model else None
 
@@ -156,8 +123,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
                        set_only_original_func=None, return_model=False,
                        verbose=1):
 
-
-    (metrics, (Y_train, Y_test), (acti_train, acti_test), nb_all_clusters,
+    (metrics, (Y_train, Y_test), _, (acti_train, acti_test), nb_all_clusters,
     nb_classes, nb_epoch_per_dpoint) = initialize_training_variables(nb_pseudos,
                                 nb_clusters_per_pseudo, y_train, y_test,
                                 nb_reruns, nb_epoch, nb_dpoints)
@@ -167,10 +133,9 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
     else:
         validation_data=None
 
-
     for rerun in range(nb_reruns):
 
-        start_rerun = time.time()
+        rerun_start = time.time()
 
         #extend each list for each rerun
         for item in metrics.itervalues():
@@ -405,18 +370,49 @@ def update_metrics(metrics, history, cl_acc, acol_metrics):
     metrics.get('reg')[-1].append(acol_metrics[3])
 
 
-def initialize_training_variables(nb_pseudos, nb_clusters_per_pseudo,
-                                  y_train, y_test,
-                                  nb_reruns, nb_epoch, nb_dpoints):
+def initialize_training_variables(**kwargs):
+
+    for item in kwargs.iterkeys():
+        exec(item + " = kwargs.get(item)")
 
     #find the values of the dependent variables used inside the script
-    nb_all_clusters = nb_pseudos*nb_clusters_per_pseudo
-    nb_classes = y_train.max() - y_train.min() + 1
-    nb_epoch_per_dpoint = nb_epoch/nb_dpoints
+    #nb_pseudos = kwargs.get('nb_pseudos')
+    #nb_clusters_per_pseudo = kwargs.get('nb_clusters_per_pseudo')
+    if nb_pseudos is not None and nb_clusters_per_pseudo is not None:
+        nb_all_clusters = nb_pseudos*nb_clusters_per_pseudo
+
+    #nb_parents = kwargs.get('nb_parents')
+    #nb_clusters_per_parent = kwargs.get('nb_clusters_per_parent')
+    if nb_parents is not None and nb_clusters_per_parent is not None:
+        nb_all_clusters = nb_parents*nb_clusters_per_parent
 
     # y to Y conversion for original dataset
-    Y_train = np_utils.to_categorical(y_train, nb_classes)
-    Y_test = np_utils.to_categorical(y_test, nb_classes)
+    #y_train = kwargs.get('y_train')
+    if y_train is not None:
+        nb_classes = y_train.max() - y_train.min() + 1
+        Y_train = np_utils.to_categorical(y_train, nb_classes)
+    #y_test = kwargs.get('y_test')
+    if y_test is not None:
+        Y_test = np_utils.to_categorical(y_test, nb_classes)
+
+    #y_train_parent = kwargs.get('y_train_parent')
+    if y_train_parent is not None:
+        Y_train_parent = np_utils.to_categorical(y_train_parent, nb_parents)
+    #y_test_parent = kwargs.get('y_test_parent')
+    if y_test_parent is not None:
+        Y_test_parent = np_utils.to_categorical(y_test_parent, nb_parents)
+
+    #nb_epoch = kwargs.get('nb_epoch')
+    #nb_dpoints = kwargs.get('nb_dpoints')
+    if nb_epoch is not None and nb_dpoints is not None:
+        nb_epoch_per_dpoint = nb_epoch/nb_dpoints
+
+    #initialize activation matrices
+    #nb_reruns = kwargs.get('nb_reruns')
+    if y_train is not None and nb_all_clusters is not None and nb_reruns is not None:
+        acti_train = np.zeros((len(y_train), nb_all_clusters, nb_reruns))
+    if y_test is not None and nb_all_clusters is not None and nb_reruns is not None:
+        acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
 
     #initialize evaluation metrics
     loss, vloss = [], []
@@ -434,11 +430,8 @@ def initialize_training_variables(nb_pseudos, nb_clusters_per_pseudo,
                'coactivity': coactivity,
                'reg': reg}
 
-    #initialize activation matrices
-    acti_train = np.zeros((len(y_train), nb_all_clusters, nb_reruns))
-    acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
-
-    return metrics, (Y_train, Y_test), (acti_train, acti_test), nb_all_clusters, nb_classes, nb_epoch_per_dpoint
+    return (metrics, (Y_train, Y_test), (Y_train_parent, Y_test_parent), (acti_train, acti_test),
+            nb_all_clusters, nb_classes, nb_epoch_per_dpoint)
 
 def print_stats(verbose, stat_type, **kwargs) :
 
