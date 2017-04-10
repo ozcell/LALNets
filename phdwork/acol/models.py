@@ -13,12 +13,12 @@ from phdwork.acol.regularizers import activity_acol
 
 
 def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden_drop = True,
-               acol_params=(5, 0, 1, 1, 0, 0.000001, 'average', False, 'identity_vstacked', False),
-               truncated = False):
+               acol_params=(5, 0, 1, 1, 0, 0.000001, 'average', False),
+               init='identity_vstacked', null_node= False, truncated = False):
 
     nb_filters, nb_conv, nb_pool = conv_params
 
-    K, p, c1, c2, c3, c4, pooling, trainable, init, null_node = acol_params
+    K, p, c1, c2, c3, c4, pooling, trainable = acol_params
 
     if pooling == 'average':
         AcolPooling = AveragePooling
