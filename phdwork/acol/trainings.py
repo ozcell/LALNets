@@ -178,6 +178,10 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         _model_params = model_params + ('identity_vstacked', (nb_pseudos==1), False,)
         _model_truncated_params = model_params + ('identity_vstacked', (nb_pseudos==1), True,)
 
+        #define models for each run
+        model = define_model(*_model_params)
+        model_truncated = define_model(*_model_truncated_params)
+
         #and compile
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
         model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
