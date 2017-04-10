@@ -21,9 +21,11 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
 
     (metrics, (Y_train, Y_test), (Y_train_parent, Y_test_parent),
     (acti_train, acti_test), nb_all_clusters, nb_classes,
-    nb_epoch_per_dpoint) = initialize_training_variables(nb_parents,
-                                nb_clusters_per_parent, y_train, y_test,
-                                nb_reruns, nb_epoch, nb_dpoints)
+    nb_epoch_per_dpoint) = initialize_training_variables(nb_parents=nb_parents,
+                nb_clusters_per_parent=nb_clusters_per_parent, y_train=y_train,
+                y_test=y_test, y_train_parent=y_train_parent,
+                y_test_parent=y_test_parent, nb_reruns=nb_reruns,
+                nb_epoch=nb_epoch, nb_dpoints=nb_dpoints)
 
     if validate_on_test_set:
         validation_data=(X_test, Y_test_parent)
@@ -124,9 +126,10 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
                        verbose=1):
 
     (metrics, (Y_train, Y_test), _, (acti_train, acti_test), nb_all_clusters,
-    nb_classes, nb_epoch_per_dpoint) = initialize_training_variables(nb_pseudos,
-                                nb_clusters_per_pseudo, y_train, y_test,
-                                nb_reruns, nb_epoch, nb_dpoints)
+    nb_classes, nb_epoch_per_dpoint) = initialize_training_variables(nb_pseudos=nb_pseudos,
+                    nb_clusters_per_pseudo=nb_clusters_per_pseudo,
+                    y_train=y_train, y_test=y_test, nb_reruns=nb_reruns,
+                    nb_epoch=nb_epoch, nb_dpoints=nb_dpoints)
 
     if validate_on_test_set:
         validation_data=(X_test, )
