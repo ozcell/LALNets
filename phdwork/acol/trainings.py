@@ -375,43 +375,40 @@ def update_metrics(metrics, history, cl_acc, acol_metrics):
 
 def initialize_training_variables(**kwargs):
 
-    for item in kwargs.iterkeys():
-        exec(item + " = kwargs.get(item)")
-
     #find the values of the dependent variables used inside the script
-    #nb_pseudos = kwargs.get('nb_pseudos')
-    #nb_clusters_per_pseudo = kwargs.get('nb_clusters_per_pseudo')
+    nb_pseudos = kwargs.get('nb_pseudos')
+    nb_clusters_per_pseudo = kwargs.get('nb_clusters_per_pseudo')
     if nb_pseudos is not None and nb_clusters_per_pseudo is not None:
         nb_all_clusters = nb_pseudos*nb_clusters_per_pseudo
 
-    #nb_parents = kwargs.get('nb_parents')
-    #nb_clusters_per_parent = kwargs.get('nb_clusters_per_parent')
+    nb_parents = kwargs.get('nb_parents')
+    nb_clusters_per_parent = kwargs.get('nb_clusters_per_parent')
     if nb_parents is not None and nb_clusters_per_parent is not None:
         nb_all_clusters = nb_parents*nb_clusters_per_parent
 
     # y to Y conversion for original dataset
-    #y_train = kwargs.get('y_train')
+    y_train = kwargs.get('y_train')
     if y_train is not None:
         nb_classes = y_train.max() - y_train.min() + 1
         Y_train = np_utils.to_categorical(y_train, nb_classes)
-    #y_test = kwargs.get('y_test')
+    y_test = kwargs.get('y_test')
     if y_test is not None:
         Y_test = np_utils.to_categorical(y_test, nb_classes)
 
-    #y_train_parent = kwargs.get('y_train_parent')
+    y_train_parent = kwargs.get('y_train_parent')
     if y_train_parent is not None:
         Y_train_parent = np_utils.to_categorical(y_train_parent, nb_parents)
-    #y_test_parent = kwargs.get('y_test_parent')
+    y_test_parent = kwargs.get('y_test_parent')
     if y_test_parent is not None:
         Y_test_parent = np_utils.to_categorical(y_test_parent, nb_parents)
 
-    #nb_epoch = kwargs.get('nb_epoch')
-    #nb_dpoints = kwargs.get('nb_dpoints')
+    nb_epoch = kwargs.get('nb_epoch')
+    nb_dpoints = kwargs.get('nb_dpoints')
     if nb_epoch is not None and nb_dpoints is not None:
         nb_epoch_per_dpoint = nb_epoch/nb_dpoints
 
     #initialize activation matrices
-    #nb_reruns = kwargs.get('nb_reruns')
+    nb_reruns = kwargs.get('nb_reruns')
     if y_train is not None and nb_all_clusters is not None and nb_reruns is not None:
         acti_train = np.zeros((len(y_train), nb_all_clusters, nb_reruns))
     if y_test is not None and nb_all_clusters is not None and nb_reruns is not None:
