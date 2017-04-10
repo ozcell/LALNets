@@ -196,7 +196,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
         #validate initial network before starting the training
         history = model.fit_pseudo(X_train, nb_pseudos,
-                                batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=False
+                                batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=False,
                                 get_pseudos_func=get_pseudos_func, validation_data=validation_data,
                                 train_on_only_original=only_original)
 
@@ -220,7 +220,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         for dpoint in range(nb_dpoints):
 
             history = model.fit_pseudo(X_train, nb_pseudos,
-                                batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=True
+                                batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=True,
                                 get_pseudos_func=get_pseudos_func, validation_data=validation_data,
                                 train_on_only_original=only_original)
 
