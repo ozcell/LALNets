@@ -176,9 +176,11 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         _model_params = model_params + (False,)
         _model_truncated_params = model_params + (True,)
 
-        #define models for each run
-        model = define_model(*_model_params)
-        model_truncated = define_model(*_model_truncated_params)
+        #add pooling layer initialization, null node and truncation info
+        #if nb_pseudos==1 then adds a null output node with no connection to any of softmaxx
+        #this is to prevent the errors in case of number of outputs is 1
+        _model_params = model_params + ('identity_vstacked', (nb_pseudos==1), False,)
+        _model_truncated_params = model_params + ('identity_vstacked', (nb_pseudos==1), True,)
 
         #and compile
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
@@ -297,9 +299,12 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         for item in metrics.itervalues():
             item.append([])
 
-        #add truncation info
-        _model_params = model_params + (False,)
-        _model_truncated_params = model_params + (True,)
+
+        #add pooling layer initialization, null node and truncation info
+        #if nb_pseudos==1 then adds a null output node with no connection to any of softmaxx
+        #this is to prevent the errors in case of number of outputs is 1
+        _model_params = model_params + ('identity_vstacked', (nb_pseudos==1), False,)
+        _model_truncated_params = model_params + ('identity_vstacked', (nb_pseudos==1), True,)
 
         #define models for each run
         model = define_model(*_model_params)
