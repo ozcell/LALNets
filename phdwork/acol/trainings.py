@@ -12,11 +12,11 @@ Functions to train and evaluate ACOL experiments.
 '''
 
 def train_with_parents(nb_parents, nb_clusters_per_parent,
-                       model_def_func, model_params, optimizer,
+                       define_model, model_params, optimizer,
                        X_train, y_train, y_train_parent,
                        X_test, y_test, y_test_parent,
                        nb_reruns, nb_epoch, nb_dpoints, batch_size,
-                       validate_on_test_set=True, update_c3=None,
+                       test_on_test_set=True, update_c3=None,
                        return_model=False, verbose=1):
 
     #find the values of the dependent variables used inside the script
@@ -36,10 +36,10 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
     acti_train = np.zeros((len(y_train), nb_all_clusters, nb_reruns))
     acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
 
-    if validate_on_test_set:
-        validation_data=(X_test, Y_test_parent)
+    if test_on_test_set:
+        test_data=(X_test, Y_test_parent)
     else:
-        validation_data=None
+        test_data=None
 
     for rerun in range(nb_reruns):
 
@@ -54,8 +54,8 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
         _model_truncated_params = model_params + (True,)
 
         #define models for each run
-        model = model_def_func(*_model_params)
-        model_truncated = model_def_func(*_model_truncated_params)
+        model = define_model(*_model_params)
+        model_truncated = define_model(*_model_truncated_params)
 
         #and compile
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
@@ -63,6 +63,13 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
 
         #define a Theano function to reach values of ACOL metrics
         get_metrics = model.define_get_metrics()
+
+        #test initial network before starting the training
+        history = model.evaluate(X_train, Y_train_parent, batch_size, verbose=0)
+        if test_data is not None:
+            history.extend(model.evaluate(test_data[0], test_data[1], batch_size, verbose=0))
+        else:
+            history.extend([0, 0])
 
         #get ACOL metrics, affinity, balance, coactivity and regularization cost
         acol_metrics = cumulate_metrics(X_train, get_metrics, batch_size)
@@ -75,7 +82,7 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
         update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
 
         #print stats
-        print_stats(verbose, 1, validation_data=validation_data, X_train=X_train,
+        print_stats(verbose, 1, test_data=test_data, X_train=X_train,
                     nb_pseudos=nb_pseudos, acol_metrics=acol_metrics,
                     cl_acc=[cl_acc, cl_vacc])
 
@@ -83,7 +90,7 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
 
             history = model.fit(X_train, Y_train_parent,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint,
-                                verbose=2, validation_data=validation_data)
+                                verbose=2, test_data=test_data)
 
             history = history.history.values()
             history = [history[1][-1],history[0][-1],history[3][-1],history[2][-1]]
@@ -108,7 +115,7 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
             update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
 
             #print stats
-            print_stats(verbose, 2, validation_data=validation_data, rerun=rerun,
+            print_stats(verbose, 2, test_data=test_data, rerun=rerun,
                         dpoint=dpoint, nb_epoch_per_dpoint=nb_epoch_per_dpoint,
                         acol_metrics=acol_metrics, cl_acc=[cl_acc, cl_vacc])
 
@@ -125,12 +132,12 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
 
 
 def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
-                       model_def_func, model_params, optimizer,
+                       define_model, model_params, optimizer,
                        X_train, y_train,
                        X_test, y_test,
                        get_pseudos,
                        nb_reruns, nb_epoch, nb_dpoints, batch_size,
-                       validate_on_test_set=True, update_c3=None,
+                       test_on_test_set=True, update_c3=None,
                        set_original_only=None, return_model=False,
                        verbose=1):
 
@@ -149,10 +156,10 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
     acti_train = np.zeros((len(y_train), nb_all_clusters, nb_reruns))
     acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
 
-    if validate_on_test_set:
-        validation_data=(X_test, )
+    if test_on_test_set:
+        test_data=(X_test, )
     else:
-        validation_data=None
+        test_data=None
 
     for rerun in range(nb_reruns):
 
@@ -167,8 +174,8 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         _model_truncated_params = model_params + (True,)
 
         #define models for each run
-        model = model_def_func(*_model_params)
-        model_truncated = model_def_func(*_model_truncated_params)
+        model = define_model(*_model_params)
+        model_truncated = define_model(*_model_truncated_params)
 
         #and compile
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
@@ -180,10 +187,10 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         #define a Theano function to reach values of ACOL metrics
         get_metrics = model.define_get_metrics()
 
-        #validate initial network before starting the training
+        #test initial network before starting the training
         history = model.fit_pseudo(X_train, nb_pseudos,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=False,
-                                get_pseudos=get_pseudos, validation_data=validation_data,
+                                get_pseudos=get_pseudos, test_data=test_data,
                                 train_on_original_only=original_only, verbose=0)
 
         #get ACOL metrics, affinity, balance, coactivity and regularization cost
@@ -197,7 +204,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
 
         #print stats
-        print_stats(verbose, 1, validation_data=validation_data, X_train=X_train,
+        print_stats(verbose, 1, test_data=test_data, X_train=X_train,
                     nb_pseudos=nb_pseudos, acol_metrics=acol_metrics,
                     cl_acc=[cl_acc, cl_vacc])
 
@@ -205,7 +212,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
             history = model.fit_pseudo(X_train, nb_pseudos,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=True,
-                                get_pseudos=get_pseudos, validation_data=validation_data,
+                                get_pseudos=get_pseudos, test_data=test_data,
                                 train_on_original_only=original_only, verbose=verbose)
 
             #transfer weights to truncated mirror of the model
@@ -231,7 +238,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
             update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
 
             #print stats
-            print_stats(verbose, 2, validation_data=validation_data, rerun=rerun,
+            print_stats(verbose, 2, test_data=test_data, rerun=rerun,
                         dpoint=dpoint, nb_epoch_per_dpoint=nb_epoch_per_dpoint,
                         acol_metrics=acol_metrics, cl_acc=[cl_acc, cl_vacc])
 
@@ -248,8 +255,8 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
 
 def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
-               get_pseudos, train=True, validation_data=None,
-               train_on_original_only=False, validate_on_original_only=True, verbose=1):
+               get_pseudos, train=True, test_data=None,
+               train_on_original_only=False, test_on_original_only=True, verbose=1):
 
     if verbose:
         progbar = generic_utils.Progbar(nb_epoch)
@@ -266,19 +273,19 @@ def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
         count = 0
         history_train = np.zeros(2)
         for X_batch, Y_batch in pseudo_batch_generator(X_train, batch_size,
-            nb_pseudos, get_pseudos, validate_on_original_only):
+            nb_pseudos, get_pseudos, test_on_original_only):
             history_train += self.test_on_batch(X_batch, Y_batch)
             count += 1
         history_train /= count
         history_train = list(history_train)
         values=[('loss', history_train[0]), ('acc', history_train[1])]
 
-        #test on original test set if validate_on_test_set is True
-        if validation_data is not None:
+        #test on original test set if test_on_test_set is True
+        history_test = np.zeros(2)
+        if test_data is not None:
             count = 0
-            history_test = np.zeros(2)
-            for X_batch, Y_batch in pseudo_batch_generator(validation_data[0],
-                batch_size, nb_pseudos, get_pseudos, validate_on_original_only):
+            for X_batch, Y_batch in pseudo_batch_generator(test_data[0],
+                batch_size, nb_pseudos, get_pseudos, test_on_original_only):
                 history_test += self.test_on_batch(X_batch, Y_batch)
                 count += 1
             history_test /= count
@@ -286,7 +293,7 @@ def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
             values.extend([('val_loss', history_test[0]), ('val_acc', history_test[1])])
             history_train.extend(history_test)
         else:
-            values.extend([('val_loss', 'N/A'), ('val_acc', 'N/A')])
+            #values.extend([('val_loss', 'N/A'), ('val_acc', 'N/A')])
             history_train.extend(history_test)
 
         if verbose:
@@ -417,13 +424,13 @@ def print_stats(verbose, stat_type, **kwargs) :
 
         if stat_type == 1:
 
-            validation_data = kwargs.get('validation_data')
+            test_data = kwargs.get('test_data')
             X_train = kwargs.get('X_train')
             nb_pseudos = kwargs.get('nb_pseudos')
             if X_train is not None and nb_pseudos is not None:
-                if validation_data is not None:
-                    print('Train on %d samples, validate on %d samples' %
-                          (len(X_train)*nb_pseudos, len(validation_data[0])))
+                if test_data is not None:
+                    print('Train on %d samples, test on %d samples' %
+                          (len(X_train)*nb_pseudos, len(test_data[0])))
                 else:
                     print('Train on %d samples' % (len(X_train)*nb_pseudos))
 
@@ -435,7 +442,7 @@ def print_stats(verbose, stat_type, **kwargs) :
                 print('ACOL metrics: Affinity: %.3f, Balance: %.3f, Coactivity: %.3f' %
                      (acol_metrics[0], acol_metrics[1], acol_metrics[2]))
             if cl_acc is not None:
-                print('Clustering accuracy: On training set: %.3f, On validation set: %.3f' %
+                print('Clustering accuracy: On training set: %.3f, On test set: %.3f' %
                      (cl_acc[0], cl_acc[1]))
             print("*" * 40)
 
@@ -452,7 +459,7 @@ def print_stats(verbose, stat_type, **kwargs) :
                 print('ACOL metrics: Affinity: %.3f, Balance: %.3f, Coactivity: %.3f' %
                      (acol_metrics[0], acol_metrics[1], acol_metrics[2]))
             if cl_acc is not None:
-                print('Clustering accuracy: On training set: %.3f, On validation set: %.3f' %
+                print('Clustering accuracy: On training set: %.3f, On test set: %.3f' %
                      (cl_acc[0], cl_acc[1]))
             print("*" * 40)
 
