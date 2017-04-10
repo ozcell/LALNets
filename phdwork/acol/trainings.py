@@ -90,7 +90,7 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
 
             history = model.fit(X_train, Y_train_parent,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint,
-                                verbose=2, test_data=test_data)
+                                verbose=2, validation_data=test_data)
 
             history = history.history.values()
             history = [history[1][-1],history[0][-1],history[3][-1],history[2][-1]]
