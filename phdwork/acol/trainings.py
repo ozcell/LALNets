@@ -157,11 +157,11 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
                        verbose=1):
 
 
-    metrics, (Y_train, Y_test), (acti_train, acti_test), nb_all_clusters,
-    nb_classes, nb_epoch_per_dpoint = initialize_training_variables(nb_pseudos,
+    (metrics, (Y_train, Y_test), (acti_train, acti_test), nb_all_clusters,
+    nb_classes, nb_epoch_per_dpoint) = initialize_training_variables(nb_pseudos,
                                 nb_clusters_per_pseudo, y_train, y_test,
                                 nb_reruns, nb_epoch, nb_dpoints)
-                                
+
     if validate_on_test_set:
         validation_data=(X_test, )
     else:
