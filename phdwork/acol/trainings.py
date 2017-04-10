@@ -439,7 +439,7 @@ def print_stats(verbose, stat_type, **kwargs) :
 
             acol_metrics = kwargs.get('acol_metrics')
             cl_acc = kwargs.get('cl_acc')
-            print("_" * 40)
+            print("=" * 60)
             if acol_metrics is not None:
                 print('Stats before training:')
                 print('ACOL metrics: Affinity: %.3f, Balance: %.3f, Coactivity: %.3f' %
@@ -447,7 +447,7 @@ def print_stats(verbose, stat_type, **kwargs) :
             if cl_acc is not None:
                 print('Clustering accuracy: On training set: %.3f, On test set: %.3f' %
                      (cl_acc[0], cl_acc[1]))
-            print("_" * 40)
+            print("=" * 60)
 
         elif stat_type == 2:
             acol_metrics = kwargs.get('acol_metrics')
@@ -455,7 +455,7 @@ def print_stats(verbose, stat_type, **kwargs) :
             rerun = kwargs.get('rerun')
             dpoint = kwargs.get('dpoint')
             nb_epoch_per_dpoint = kwargs.get('nb_epoch_per_dpoint')
-            print("_" * 40)
+            print("=" * 60)
             if rerun is not None and dpoint is not None and nb_epoch_per_dpoint is not None:
                 print('Stats at epoch ' + str((dpoint+1)*nb_epoch_per_dpoint) + ' of rerun ' + str(rerun+1))
             if acol_metrics is not None:
@@ -464,14 +464,14 @@ def print_stats(verbose, stat_type, **kwargs) :
             if cl_acc is not None:
                 print('Clustering accuracy: On training set: %.3f, On test set: %.3f' %
                      (cl_acc[0], cl_acc[1]))
-            print("_" * 40)
+            print("=" * 60)
 
         elif stat_type == 3:
             rerun_start = kwargs.get('rerun_start')
             rerun_end = kwargs.get('rerun_end')
             nb_reruns = kwargs.get('nb_reruns')
             rerun = kwargs.get('rerun')
-            print("_" * 40)
+            print("=" * 60)
             if rerun_start is not None and rerun_end is not None and nb_reruns is not None and rerun is not None:
                 print('Estimated remaining run time: ' + str(int((rerun_end-rerun_start)*(nb_reruns-(rerun+1)))) + ' sec')
-            print("_" * 40)
+            print("=" * 60)
