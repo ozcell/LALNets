@@ -16,8 +16,8 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
                        X_train, y_train, y_train_parent,
                        X_test, y_test, y_test_parent,
                        nb_reruns, nb_epoch, nb_dpoints, batch_size,
-                       validate_on_test_set=True, c3_update_func=None,
-                       return_model=False):
+                       validate_on_test_set=True, update_c3=None,
+                       return_model=False, verbose=1):
 
     #find the values of the dependent variables used inside the script
     nb_all_clusters = nb_parents*nb_clusters_per_parent
@@ -99,8 +99,8 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
             cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, batch_size, verbose=verbose)
 
             #ACOL c3 update
-            if c3_update_func is not None:
-                new_c3 = c3_update_func(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose=verbose)
+            if update_c3 is not None:
+                new_c3 = update_c3(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose=verbose)
                 model.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
                 model_truncated.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
 
@@ -128,10 +128,10 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
                        model_def_func, model_params, optimizer,
                        X_train, y_train,
                        X_test, y_test,
-                       get_pseudos_func,
+                       get_pseudos,
                        nb_reruns, nb_epoch, nb_dpoints, batch_size,
-                       validate_on_test_set=True, c3_update_func=None,
-                       set_only_original_func=None, return_model=False,
+                       validate_on_test_set=True, update_c3=None,
+                       set_original_only=None, return_model=False,
                        verbose=1):
 
     #find the values of the dependent variables used inside the script
@@ -175,7 +175,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
 
         #train only using the original dataset i.e. X^*(0)
-        only_original = False
+        original_only = False
 
         #define a Theano function to reach values of ACOL metrics
         get_metrics = model.define_get_metrics()
@@ -183,8 +183,8 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         #validate initial network before starting the training
         history = model.fit_pseudo(X_train, nb_pseudos,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=False,
-                                get_pseudos_func=get_pseudos_func, validation_data=validation_data,
-                                train_on_only_original=only_original, verbose=0)
+                                get_pseudos=get_pseudos, validation_data=validation_data,
+                                train_on_original_only=original_only, verbose=0)
 
         #get ACOL metrics, affinity, balance, coactivity and regularization cost
         acol_metrics = cumulate_metrics(X_train, get_metrics, batch_size)
@@ -205,8 +205,8 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
             history = model.fit_pseudo(X_train, nb_pseudos,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=True,
-                                get_pseudos_func=get_pseudos_func, validation_data=validation_data,
-                                train_on_only_original=only_original, verbose=verbose)
+                                get_pseudos=get_pseudos, validation_data=validation_data,
+                                train_on_original_only=original_only, verbose=verbose)
 
             #transfer weights to truncated mirror of the model
             model_truncated.set_weights(model.get_weights())
@@ -219,13 +219,13 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
             cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, batch_size, verbose=verbose)
 
             #ACOL c3 update
-            if c3_update_func is not None:
-                new_c3 = c3_update_func(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose=verbose)
+            if update_c3 is not None:
+                new_c3 = update_c3(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose=verbose)
                 model.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
                 model_truncated.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
 
-            if set_only_original_func is not None:
-                only_original = set_only_original_func(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose=verbose)
+            if set_original_only is not None:
+                original_only = set_original_only(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose=verbose)
 
             #update experiment metrics
             update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
@@ -248,8 +248,8 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
 
 def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
-               get_pseudos_func, train=True, validation_data=None,
-               train_on_only_original=False, validate_on_only_original=True, verbose=1):
+               get_pseudos, train=True, validation_data=None,
+               train_on_original_only=False, validate_on_original_only=True, verbose=1):
 
     if verbose:
         progbar = generic_utils.Progbar(nb_epoch)
@@ -259,14 +259,14 @@ def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
         if train:
             #train model
             for X_batch, Y_batch in pseudo_batch_generator(X_train, batch_size,
-                nb_pseudos, get_pseudos_func, train_on_only_original):
+                nb_pseudos, get_pseudos, train_on_original_only):
                 self.train_on_batch(X_batch, Y_batch)
 
         #test on original training set
         count = 0
         history_train = np.zeros(2)
         for X_batch, Y_batch in pseudo_batch_generator(X_train, batch_size,
-            nb_pseudos, get_pseudos_func, validate_on_only_original):
+            nb_pseudos, get_pseudos, validate_on_original_only):
             history_train += self.test_on_batch(X_batch, Y_batch)
             count += 1
         history_train /= count
@@ -278,7 +278,7 @@ def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
             count = 0
             history_test = np.zeros(2)
             for X_batch, Y_batch in pseudo_batch_generator(validation_data[0],
-                batch_size, nb_pseudos, get_pseudos_func, validate_on_only_original):
+                batch_size, nb_pseudos, get_pseudos, validate_on_original_only):
                 history_test += self.test_on_batch(X_batch, Y_batch)
                 count += 1
             history_test /= count
@@ -298,10 +298,10 @@ def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
 Model.fit_pseudo = fit_pseudo
 
 
-def pseudo_batch_generator(X, batch_size, nb_pseudos, get_pseudos_func, only_original):
+def pseudo_batch_generator(X, batch_size, nb_pseudos, get_pseudos, original_only):
 
     #initialize shuffled ind
-    if only_original:
+    if original_only:
         ind = np.random.permutation(len(X))
     else:
         ind = np.random.permutation(nb_pseudos*len(X))
@@ -321,7 +321,7 @@ def pseudo_batch_generator(X, batch_size, nb_pseudos, get_pseudos_func, only_ori
         X_batch = X[ind_batch%len(X),]
 
         #create pseudo labels
-        if only_original:
+        if original_only:
             y_batch = np.zeros_like(ind_batch) #create all zeros output labels
         else:
             y_batch = ind_batch/len(X) #create suffled eqaully distributed
@@ -335,7 +335,7 @@ def pseudo_batch_generator(X, batch_size, nb_pseudos, get_pseudos_func, only_ori
 
         #transform X according to pseudo labels
         for pseudo in range(nb_pseudos):
-            X_batch[y_batch==pseudo,] = get_pseudos_func(X_batch[y_batch==pseudo,], pseudo)
+            X_batch[y_batch==pseudo,] = get_pseudos(X_batch[y_batch==pseudo,], pseudo)
 
         yield X_batch, Y_batch
 
