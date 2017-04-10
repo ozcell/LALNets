@@ -172,10 +172,6 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         for item in metrics.itervalues():
             item.append([])
 
-        #add truncation info
-        _model_params = model_params + (False,)
-        _model_truncated_params = model_params + (True,)
-
         #add pooling layer initialization, null node and truncation info
         #if nb_pseudos==1 then adds a null output node with no connection to any of softmaxx
         #this is to prevent the errors in case of number of outputs is 1
