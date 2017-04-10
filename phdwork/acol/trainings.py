@@ -271,7 +271,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
 def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
                get_pseudos_func, train=True, validation_data=None,
-               train_on_only_original=False, test_on_only_original=True):
+               train_on_only_original=False, validate_on_only_original=True):
 
     if validation_data is not None:
         print('\nTrain on %d samples, validate on %d samples' %
@@ -285,14 +285,18 @@ def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
 
         if train:
             #train model
-            for X_batch, Y_batch in pseudo_batch_generator(X_train, batch_size, nb_pseudos, get_pseudos_func, train_on_only_original):
+            for X_batch, Y_batch in pseudo_batch_generator(X_train, batch_size,
+                nb_pseudos, get_pseudos_func, train_on_only_original):
+
                 self.train_on_batch(X_batch, Y_batch)
 
         #test on original training set
         count = 0
         history_train = np.zeros(2)
 
-        for X_batch, Y_batch in pseudo_batch_generator(X_train, batch_size, nb_pseudos, get_pseudos_func, validate_on_only_original):
+        for X_batch, Y_batch in pseudo_batch_generator(X_train, batch_size,
+            nb_pseudos, get_pseudos_func, validate_on_only_original):
+
             history_train += self.test_on_batch(X_batch, Y_batch)
             count += 1
 
@@ -306,7 +310,9 @@ def fit_pseudo(self, X_train, nb_pseudos, batch_size, nb_epoch,
             count = 0
             history_test = np.zeros(2)
 
-            for X_batch, Y_batch in pseudo_batch_generator(validation_data[0], batch_size, nb_pseudos, get_pseudos_func, validate_on_only_original):
+            for X_batch, Y_batch in pseudo_batch_generator(validation_data[0],
+                batch_size, nb_pseudos, get_pseudos_func, validate_on_only_original):
+
                 history_test += self.test_on_batch(X_batch, Y_batch)
                 count += 1
 
