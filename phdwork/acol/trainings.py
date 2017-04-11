@@ -61,6 +61,9 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
         model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
 
+        #transfer weights to truncated mirror of the model
+        model_truncated.set_weights(model.get_weights())
+
         #define a Theano function to reach values of ACOL metrics
         get_metrics = model.define_get_metrics()
 
@@ -185,6 +188,9 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         #and compile
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
         model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
+
+        #transfer weights to truncated mirror of the model
+        model_truncated.set_weights(model.get_weights())
 
         #train only using the original dataset i.e. X^*(0)
         original_only = False
@@ -332,6 +338,8 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         weights_model_pre.append(model.get_weights()[-1])
 
         model.set_weights(weights_model_pre)
+        #transfer weights to truncated mirror of the model
+        model_truncated.set_weights(model.get_weights())
 
         #train only using the original dataset i.e. X^*(0)
         original_only = False
@@ -840,6 +848,7 @@ def print_stats(verbose, stat_type, **kwargs) :
                 print('ACOL metrics: Affinity: %.3f, Balance: %.3f, Coactivity: %.3f' %
                      (acol_metrics[0], acol_metrics[1], acol_metrics[2]))
             print("=" * 80)
+
 
 def get_model_pre_params(model_params, nb_pseudos, nb_classes):
 
