@@ -111,3 +111,21 @@ def get_acception_activations(acti, nb_parents, acception_type='cluster_wise'):
                 acti_clusters[i].extend(acti[accepted_ind, clusters[i]])
 
     return acti_clusters
+
+def choose_samples(X, y, nb_samples_per_class):
+
+    perm = np.random.permutation
+    nb_classes = y.max() - y.min() + 1
+    ind_chosen= []
+    for label in range(0, nb_classes):
+        #select all samples of a labels
+        ind_samples = np.where(y == label)[0]
+        #shuffle them
+        ind_samples = ind_samples[perm(len(ind_samples))]
+        #choose first nb_samples_per_class samples and add to list
+        ind_samples = ind_samples[0:nb_samples_per_class]
+        ind_chosen.extend(ind_samples)
+
+    np.random.shuffle(ind_chosen)
+
+    return X[ind_chosen, ], y[ind_chosen]

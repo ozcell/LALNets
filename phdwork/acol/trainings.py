@@ -262,22 +262,30 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
 
 def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
-                       define_model, model_params, optimizer,
-                       X_train, y_train,
-                       X_test, y_test,
-                       get_pseudos,
-                       nb_reruns, nb_epoch, nb_dpoints, batch_size,
-                       test_on_test_set=True, update_c3=None,
-                       set_original_only=None, return_model=False,
-                       verbose=1):
+                         define_model, model_params, optimizer,
+                         X_train, y_train, nb_labeled,
+                         X_test, y_test,
+                         get_pseudos,
+                         nb_reruns, nb_epoch, nb_dpoints, batch_size,
+                         test_on_test_set=True, update_c3=None,
+                         set_original_only=None, return_model=False,
+                         verbose=1):
 
+    #X_train[0] and y_train[0] are used for unlabeled training
+    #nb_labeled samples are chosen from X_train[1] and y_train[1]
     #find the values of the dependent variables used inside the script
     nb_all_clusters = nb_pseudos*nb_clusters_per_pseudo
 
     # y to Y conversion for original dataset
-    nb_classes = y_train.max() - y_train.min() + 1
-    Y_train = np_utils.to_categorical(y_train, nb_classes)
+    nb_classes = y_train[0].max() - y_train[0].min() + 1
+    Y_train = np_utils.to_categorical(y_train[0], nb_classes)
     Y_test = np_utils.to_categorical(y_test, nb_classes)
+
+    #randomly choose nb_labeled samples from X_train[1]
+    X_train_labeled, y_train_labeled = choose_samples(X_train[1], y_train[1],
+                                            nb_classes, nb_labeled/nb_classes)
+
+    Y_train_labeled = np_utils.to_categorical(y_train_labeled, nb_classes)
 
     nb_epoch_per_dpoint = nb_epoch/nb_dpoints
 
@@ -285,6 +293,8 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
 
     acti_train = np.zeros((len(y_train), nb_all_clusters, nb_reruns))
     acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
+
+    acti_train_labeled = np.zeros((len(y_train_labeled), nb_all_clusters, nb_reruns))
 
     if test_on_test_set:
         test_data=(X_test, )
@@ -300,19 +310,25 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
             item.append([])
 
 
+
+        model_params = model_params[1] + ('identity_vstacked', (nb_pseudos==1), False,)
+
+        model_pre = define_model(*_model_params)
+
+
         #add pooling layer initialization, null node and truncation info
         #if nb_pseudos==1 then adds a null output node with no connection to any of softmaxx
         #this is to prevent the errors in case of number of outputs is 1
-        _model_params = model_params + ('identity_vstacked', (nb_pseudos==1), False,)
-        _model_truncated_params = model_params + ('identity_vstacked', (nb_pseudos==1), True,)
+        _model_params = model_params[0] + ('identity_vstacked', (nb_pseudos==1), False,)
+        _model_truncated_params = model_params[0] + ('identity_vstacked', (nb_pseudos==1), True,)
 
         #define models for each run
         model = define_model(*_model_params)
         model_truncated = define_model(*_model_truncated_params)
 
         #and compile
-        model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
-        model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
+        model.compile(loss='categorical_crossentropy', optimizer=optimizer[0], metrics=["accuracy"])
+        model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer[0], metrics=["accuracy"])
 
         #train only using the original dataset i.e. X^*(0)
         original_only = False
@@ -321,7 +337,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         get_metrics = model.define_get_metrics()
 
         #test initial network before starting the training
-        history = model.fit_semisupervised(X_train, nb_pseudos,
+        history = model.fit_pseudo(X_train, nb_pseudos,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=False,
                                 get_pseudos=get_pseudos, test_data=test_data,
                                 train_on_original_only=original_only, verbose=0)
@@ -343,7 +359,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
 
         for dpoint in range(nb_dpoints):
 
-            history = model.fit_semisupervised(X_train, nb_pseudos,
+            history = model.fit_pseudo(X_train, nb_pseudos,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=True,
                                 get_pseudos=get_pseudos, test_data=test_data,
                                 train_on_original_only=original_only, verbose=verbose)
@@ -489,7 +505,7 @@ def fit_semisupervised(self, X, nb_pseudos, batch_size, nb_epoch,
 Model.fit_semisupervised = fit_semisupervised
 
 
-def pseudo_batch_generator(X, batch_size, nb_pseudos, get_pseudos, original_only):
+def pseudo_batch_generator_old(X, batch_size, nb_pseudos, get_pseudos, original_only):
 
     #initialize shuffled ind
     if original_only:
@@ -531,7 +547,58 @@ def pseudo_batch_generator(X, batch_size, nb_pseudos, get_pseudos, original_only
         yield X_batch, Y_batch
 
 
-def pseudo_batch_generator_semisupervised(X, batch_size, nb_pseudos, get_pseudos, original_only):
+def pseudo_batch_generator_supervised(X, y, nb_classes, batch_size, nb_pseudos, get_pseudos, original_only):
+
+    #initialize shuffled ind
+    if original_only:
+        ind = np.random.permutation(len(X))
+    else:
+        ind = np.random.permutation(nb_pseudos*len(X))
+
+    for ind_batch_start in range(0, len(ind), batch_size):
+
+        #if the last batch then the size is the number of remaining samples
+        if ind_batch_start+batch_size > len(ind):
+            ind_batch = ind[ind_batch_start::]
+        else:
+            ind_batch = ind[ind_batch_start:ind_batch_start+batch_size]
+
+        #ind_batch%len(X) --> which sample
+        #ind_batch/len(X) --> which pseudo label
+
+        #take a batch of X depending of the remainder
+        X_batch = X[ind_batch%len(X),]
+
+        #create pseudo applied samples
+        #label 1 --> label 1*nb_pseudos, label 2 --> label 2*nb_pseudos
+        #1st psuedo of label 1 --> label 1*nb_pseudos + 1 (comes from ind_batch/len(X))
+        #2nd psuedo of label 1 --> label 1*nb_pseudos + 2 (comes from ind_batch/len(X))
+        if original_only:
+            y_batch = y(ind_batch%len(X))*nb_pseudos
+        else:
+            y_batch = y(ind_batch%len(X))*nb_pseudos + ind_batch/len(X)
+
+        #in case if nb_pseudos=1 to support null_node
+        if nb_pseudos > 1:
+            Y_batch = np_utils.to_categorical(y_batch, nb_pseudos*nb_classes)
+        else:
+            Y_batch = np_utils.to_categorical(y_batch, (nb_pseudos+1)*nb_classes)
+
+        #transform X according to pseudo labels
+        for pseudo in range(nb_pseudos):
+            X_batch[y_batch%nb_pseudos==pseudo,] = get_pseudos(X_batch[y_batch%nb_pseudos==pseudo,], pseudo)
+
+        yield X_batch, Y_batch
+
+
+def pseudo_batch_generator(X, batch_size, nb_pseudos, get_pseudos, original_only):
+
+    if type(X) is not tuple:
+        X =  (X, )
+        if type(batch_size) is not tuple:
+            batch_size = (batch_size, 0)
+        else:
+            batch_size = (sum(batch_size), 0)
 
     #initialize shuffled ind
     if original_only:
