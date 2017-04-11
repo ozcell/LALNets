@@ -39,7 +39,7 @@ def load_svhn(order='th'):
 
     # access to the dict
     X_train = train_data['X']
-    X_train = X_train.reshape(nb_channels*img_rows*img_cols, X_train.shape[-1]).T
+    X_train = X_train.reshape(img_channels*img_rows*img_cols, X_train.shape[-1]).T
     X_train = X_train.reshape(len(X_train), input_shape[0], input_shape[1], input_shape[2])
     X_train = X_train.astype('float32')
     X_train /= 255
@@ -54,7 +54,7 @@ def load_svhn(order='th'):
 
     # access to the dict
     X_test = test_data['X']
-    X_test = X_test.reshape(nb_channels*img_rows*img_cols, X_test.shape[-1]).T
+    X_test = X_test.reshape(img_channels*img_rows*img_cols, X_test.shape[-1]).T
     X_test = X_test.reshape(len(X_test), input_shape[0], input_shape[1], input_shape[2])
     X_test = X_test.astype('float32')
     X_test /= 255
