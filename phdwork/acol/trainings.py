@@ -325,6 +325,14 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         model.compile(loss='categorical_crossentropy', optimizer=optimizer[0], metrics=["accuracy"])
         model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer[0], metrics=["accuracy"])
 
+
+        #transfer weights of pretraining
+        weights_model_pre = []
+        weights_model_pre.extend(model_pre.get_weights()[0:-1])
+        weights_model_pre.append(model.get_weights()[-1])
+
+        model.set_weights(weights_model_pre)
+
         #train only using the original dataset i.e. X^*(0)
         original_only = False
 
@@ -441,7 +449,7 @@ def train_pre(nb_pseudos,
         #print stats
         print_stats(verbose, 5, acol_metrics=acol_metrics)
 
-        return model
+        return model, X_train_labeled
 
 
 def fit_pseudo(self, X, nb_pseudos, batch_size, nb_epoch,
