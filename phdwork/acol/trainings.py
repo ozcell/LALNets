@@ -787,10 +787,10 @@ def print_stats(verbose, stat_type, **kwargs) :
             nb_pseudos = kwargs.get('nb_pseudos')
             if X_train is not None and nb_pseudos is not None:
                 if test_data is not None:
-                    print('Train on %d samples, test on %d samples' %
-                          (len(X_train)*nb_pseudos, len(test_data[0])))
+                    print('Unsupervised train on %d samples using %d parent/pseudo classes, test on %d samples' %
+                          (len(X_train), nb_pseudos, len(test_data[0])))
                 else:
-                    print('Train on %d samples' % (len(X_train)*nb_pseudos))
+                    print('Unsupervised train on %d samples using %d parent/pseudo classes' % (len(X_train), nb_pseudos))
 
             acol_metrics = kwargs.get('acol_metrics')
             cl_acc = kwargs.get('cl_acc')
@@ -836,7 +836,7 @@ def print_stats(verbose, stat_type, **kwargs) :
             X_train = kwargs.get('X_train')
             nb_pseudos = kwargs.get('nb_pseudos')
             if X_train is not None and nb_pseudos is not None:
-                print('Pre-train on %d labeled samples using %d pseudo classes' %
+                print('Supervised pretrain on %d labeled samples using %d pseudo classes' %
                 (len(X_train), nb_pseudos))
             print("=" * 80)
 
