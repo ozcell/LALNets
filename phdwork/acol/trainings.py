@@ -624,9 +624,9 @@ def pseudo_batch_generator_supervised(X, y, nb_classes, nb_pseudos, batch_size, 
         #1st psuedo of label 1 --> label 1*nb_pseudos + 1 (comes from ind_batch/len(X))
         #2nd psuedo of label 1 --> label 1*nb_pseudos + 2 (comes from ind_batch/len(X))
         if original_only:
-            y_batch = y(ind_batch%len(X))*nb_pseudos
+            y_batch = y[ind_batch%len(X)]*nb_pseudos
         else:
-            y_batch = y(ind_batch%len(X))*nb_pseudos + ind_batch/len(X)
+            y_batch = y[ind_batch%len(X)]*nb_pseudos + ind_batch/len(X)
 
         #in case if nb_pseudos=1 to support null_node
         if nb_pseudos > 1:
