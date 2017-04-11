@@ -1,4 +1,6 @@
 from keras.datasets import mnist
+import numpy as np
+import scipy.io as sio
 
 def load_mnist(order='th'):
 
