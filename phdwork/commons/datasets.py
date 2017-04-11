@@ -67,7 +67,7 @@ def load_svhn(order='th'):
 
     return (X_train, y_train), (X_test, y_test), input_shape
 
-def load_norb(order='th'):
+def load_norb(order='th',use_pairs=False):
 
     # input image dimensions
     img_rows, img_cols, img_channels,  = 96, 96, 1
@@ -78,19 +78,30 @@ def load_norb(order='th'):
         input_shape=(img_channels, img_rows, img_cols)
 
     X_train = np.load('/home/ozsel/Jupyter/datasets/norb/X_train.npy')
-    X_train = X_train.reshape(len(X_train)*2, input_shape[0], input_shape[1], input_shape[2])
+    if use_pairs:
+        X_train = X_train.reshape(len(X_train)*2, input_shape[0], input_shape[1], input_shape[2])
+    else:
+        X_train = X_train[:,0,]
+        X_train = X_train.reshape(len(X_train), input_shape[0], input_shape[1], input_shape[2])
+
     X_train = X_train.astype('float32')
     X_train /= 255
 
     y_train = np.load('/home/ozsel/Jupyter/datasets/norb/y_train.npy')
-    y_train = np.stack((y_train, y_train),axis=-1).reshape(len(y_train)*2,)
+    if use_pairs:
+        y_train = np.stack((y_train, y_train),axis=-1).reshape(len(y_train)*2,)
 
     X_test = np.load('/home/ozsel/Jupyter/datasets/norb/X_test.npy')
-    X_test = X_test.reshape(len(X_test)*2, input_shape[0], input_shape[1], input_shape[2])
+    if use_pairs:
+        X_test = X_test.reshape(len(X_test)*2, input_shape[0], input_shape[1], input_shape[2])
+    else:
+        X_test = X_test[:,0,]
+        X_test = X_test.reshape(len(X_test), input_shape[0], input_shape[1], input_shape[2])
     X_test = X_test.astype('float32')
     X_test /= 255
 
     y_test = np.load('/home/ozsel/Jupyter/datasets/norb/y_test.npy')
-    y_test = np.stack((y_test, y_test),axis=-1).reshape(len(y_test)*2,)
+    if use_pairs:
+        y_test = np.stack((y_test, y_test),axis=-1).reshape(len(y_test)*2,)
 
     return (X_train, y_train), (X_test, y_test), input_shape
