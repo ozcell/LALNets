@@ -112,10 +112,9 @@ def get_acception_activations(acti, nb_parents, acception_type='cluster_wise'):
 
     return acti_clusters
 
-def choose_samples(X, y, nb_samples_per_class):
+def choose_samples(X, y, nb_classes, nb_samples_per_class):
 
     perm = np.random.permutation
-    nb_classes = y.max() - y.min() + 1
     ind_chosen= []
     for label in range(0, nb_classes):
         #select all samples of a labels

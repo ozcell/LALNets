@@ -3,7 +3,7 @@ import time
 from keras import backend as K
 from keras.engine import Model
 from keras.utils import np_utils, generic_utils
-from phdwork.commons.utils import calculate_cl_acc, cumulate_metrics
+from phdwork.commons.utils import calculate_cl_acc, cumulate_metrics, choose_samples
 
 '''
 
@@ -281,20 +281,12 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
     Y_train = np_utils.to_categorical(y_train[0], nb_classes)
     Y_test = np_utils.to_categorical(y_test, nb_classes)
 
-    #randomly choose nb_labeled samples from X_train[1]
-    X_train_labeled, y_train_labeled = choose_samples(X_train[1], y_train[1],
-                                            nb_classes, nb_labeled/nb_classes)
-
-    Y_train_labeled = np_utils.to_categorical(y_train_labeled, nb_classes)
-
-    nb_epoch_per_dpoint = nb_epoch/nb_dpoints
+    nb_epoch_per_dpoint = nb_epoch[0]/nb_dpoints
 
     metrics = initialize_metrics()
 
-    acti_train = np.zeros((len(y_train), nb_all_clusters, nb_reruns))
+    acti_train = np.zeros((len(y_train[0]), nb_all_clusters, nb_reruns))
     acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
-
-    acti_train_labeled = np.zeros((len(y_train_labeled), nb_all_clusters, nb_reruns))
 
     if test_on_test_set:
         test_data=(X_test, )
@@ -309,18 +301,21 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         for item in metrics.itervalues():
             item.append([])
 
+        #get modelX_params for model_pre
+        _model_params = get_model_pre_params(model_params, nb_pseudos, nb_classes)
 
-
-        model_params = model_params[1] + ('identity_vstacked', (nb_pseudos==1), False,)
-
-        model_pre = define_model(*_model_params)
-
+        #get pre-trained model
+        model_pre, X_train_labeled = train_pre(nb_pseudos,
+                                               define_model, _model_params, optimizer[1],
+                                               X_train[1], y_train[1], nb_labeled,
+                                               get_pseudos, nb_epoch[1], sum(batch_size),
+                                               verbose=1):
 
         #add pooling layer initialization, null node and truncation info
         #if nb_pseudos==1 then adds a null output node with no connection to any of softmaxx
         #this is to prevent the errors in case of number of outputs is 1
-        _model_params = model_params[0] + ('identity_vstacked', (nb_pseudos==1), False,)
-        _model_truncated_params = model_params[0] + ('identity_vstacked', (nb_pseudos==1), True,)
+        _model_params = model_params[0] + ('identity_vstacked', (nb_pseudos==1), False)
+        _model_truncated_params = model_params[0] + ('identity_vstacked', (nb_pseudos==1), True)
 
         #define models for each run
         model = define_model(*_model_params)
@@ -337,7 +332,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         get_metrics = model.define_get_metrics()
 
         #test initial network before starting the training
-        history = model.fit_pseudo(X_train, nb_pseudos,
+        history = model.fit_pseudo((X_train[0], X_train_labeled), nb_pseudos,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=False,
                                 get_pseudos=get_pseudos, test_data=test_data,
                                 train_on_original_only=original_only, verbose=0)
@@ -346,7 +341,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         acol_metrics = cumulate_metrics(X_train[0], get_metrics, sum(batch_size))
 
         #calculate clustering accuracy
-        cl_acc = model_truncated.evaluate_clustering(X_train[0], y_train, nb_all_clusters, sum(batch_size), verbose=verbose)
+        cl_acc = model_truncated.evaluate_clustering(X_train[0], y_train[0], nb_all_clusters, sum(batch_size), verbose=verbose)
         cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, sum(batch_size), verbose=verbose)
 
         #update experiment metrics
@@ -359,7 +354,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
 
         for dpoint in range(nb_dpoints):
 
-            history = model.fit_pseudo(X_train, nb_pseudos,
+            history = model.fit_pseudo((X_train[0], X_train_labeled), nb_pseudos,
                                 batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=True,
                                 get_pseudos=get_pseudos, test_data=test_data,
                                 train_on_original_only=original_only, verbose=verbose)
@@ -371,7 +366,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
             acol_metrics = cumulate_metrics(X_train[0], get_metrics, sum(batch_size))
 
             #calculate clustering accuracy
-            cl_acc = model_truncated.evaluate_clustering(X_train[0], y_train,
+            cl_acc = model_truncated.evaluate_clustering(X_train[0], y_train[0],
                             nb_all_clusters, sum(batch_size), verbose=verbose)
             cl_vacc = model_truncated.evaluate_clustering(X_test, y_test,
                             nb_all_clusters, sum(batch_size), verbose=verbose)
@@ -405,6 +400,50 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
     return metrics, (acti_train, acti_test), model if return_model else None
 
 
+def train_pre(nb_pseudos,
+              define_model, model_params, optimizer,
+              X_train, y_train, nb_labeled,
+              get_pseudos,
+              nb_epoch, batch_size,
+              verbose=1):
+
+
+        #find the values of the dependent variables used inside the script
+        nb_classes = y_train.max() - y_train.min() + 1
+
+        #randomly choose nb_labeled samples from X_train
+        X_train_labeled, y_train_labeled = choose_samples(X_train, y_train,
+                                                nb_classes, nb_labeled/nb_classes)
+
+
+        #add pooling layer initialization, null node and truncation info
+        _model_params = model_params + ('identity_vstacked', (nb_pseudos==1), False)
+        #define model_pre for each run
+        model = define_model(*_model_params)
+        #and compile
+        model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
+
+        #define a Theano function to reach values of ACOL metrics
+        get_metrics = model.define_get_metrics()
+
+        #print stats
+        print_stats(verbose, 4, X_train=X_train_labeled, nb_pseudos=nb_pseudos)
+
+        history = model.fit_pseudo_supervised(X_train_labeled, y_train_labeled,
+                            nb_classes, nb_pseudos,
+                            batch_size=batch_size, nb_epoch=nb_epoch, train=True,
+                            get_pseudos=get_pseudos, test_data=None,
+                            train_on_original_only=False, verbose=verbose)
+
+        #get ACOL metrics, affinity, balance, coactivity and regularization cost
+        acol_metrics = cumulate_metrics(X_train_labeled, get_metrics, batch_size)
+
+        #print stats
+        print_stats(verbose, 5, acol_metrics=acol_metrics)
+
+        return model
+
+
 def fit_pseudo(self, X, nb_pseudos, batch_size, nb_epoch,
                get_pseudos, train=True, test_data=None,
                train_on_original_only=False, test_on_original_only=True, verbose=1):
@@ -416,15 +455,15 @@ def fit_pseudo(self, X, nb_pseudos, batch_size, nb_epoch,
 
         if train:
             #train model
-            for X_batch, Y_batch in pseudo_batch_generator(X, batch_size,
-                nb_pseudos, get_pseudos, train_on_original_only):
+            for X_batch, Y_batch in pseudo_batch_generator(X, nb_pseudos,
+                batch_size, get_pseudos, train_on_original_only):
                 self.train_on_batch(X_batch, Y_batch)
 
         #test on original training set
         count = 0
         history_train = np.zeros(2)
-        for X_batch, Y_batch in pseudo_batch_generator(X, batch_size,
-            nb_pseudos, get_pseudos, test_on_original_only):
+        for X_batch, Y_batch in pseudo_batch_generator(X, nb_pseudos,
+            batch_size, get_pseudos, test_on_original_only):
             history_train += self.test_on_batch(X_batch, Y_batch)
             count += 1
         history_train /= count
@@ -436,7 +475,7 @@ def fit_pseudo(self, X, nb_pseudos, batch_size, nb_epoch,
         if test_data is not None:
             count = 0
             for X_batch, Y_batch in pseudo_batch_generator(test_data[0],
-                batch_size, nb_pseudos, get_pseudos, test_on_original_only):
+                nb_pseudos, batch_size, get_pseudos, test_on_original_only):
                 history_test += self.test_on_batch(X_batch, Y_batch)
                 count += 1
             history_test /= count
@@ -455,7 +494,7 @@ def fit_pseudo(self, X, nb_pseudos, batch_size, nb_epoch,
 Model.fit_pseudo = fit_pseudo
 
 
-def fit_semisupervised(self, X, nb_pseudos, batch_size, nb_epoch,
+def fit_pseudo_supervised(self, X, y, nb_classes, nb_pseudos, batch_size, nb_epoch,
                get_pseudos, train=True, test_data=None,
                train_on_original_only=False, test_on_original_only=True, verbose=1):
 
@@ -466,15 +505,17 @@ def fit_semisupervised(self, X, nb_pseudos, batch_size, nb_epoch,
 
         if train:
             #train model
-            for X_batch, Y_batch in pseudo_batch_generator_semisupervised(X,
-                batch_size, nb_pseudos, get_pseudos, train_on_original_only):
+            for X_batch, Y_batch in pseudo_batch_generator_supervised(X, y,
+                nb_classes, nb_pseudos, batch_size, get_pseudos,
+                train_on_original_only):
                 self.train_on_batch(X_batch, Y_batch)
 
         #test on original training set
         count = 0
         history_train = np.zeros(2)
-        for X_batch, Y_batch in pseudo_batch_generator_semisupervised(X,
-            batch_size, nb_pseudos, get_pseudos, test_on_original_only):
+        for X_batch, Y_batch in pseudo_batch_generator_supervised(X, y,
+            nb_classes, nb_pseudos, batch_size, get_pseudos,
+            test_on_original_only):
             history_train += self.test_on_batch(X_batch, Y_batch)
             count += 1
         history_train /= count
@@ -485,8 +526,9 @@ def fit_semisupervised(self, X, nb_pseudos, batch_size, nb_epoch,
         history_test = np.zeros(2)
         if test_data is not None:
             count = 0
-            for X_batch, Y_batch in pseudo_batch_generator_semisupervised((test_data[0], ),
-                batch_size, nb_pseudos, get_pseudos, test_on_original_only):
+            for X_batch, Y_batch in pseudo_batch_generator_supervised(test_data[0],
+                test_data[1], nb_classes, nb_pseudos, batch_size, get_pseudos,
+                test_on_original_only):
                 history_test += self.test_on_batch(X_batch, Y_batch)
                 count += 1
             history_test /= count
@@ -502,7 +544,7 @@ def fit_semisupervised(self, X, nb_pseudos, batch_size, nb_epoch,
     return history_train
 
 
-Model.fit_semisupervised = fit_semisupervised
+Model.fit_pseudo_supervised = fit_pseudo_supervised
 
 
 def pseudo_batch_generator_old(X, batch_size, nb_pseudos, get_pseudos, original_only):
@@ -547,7 +589,7 @@ def pseudo_batch_generator_old(X, batch_size, nb_pseudos, get_pseudos, original_
         yield X_batch, Y_batch
 
 
-def pseudo_batch_generator_supervised(X, y, nb_classes, batch_size, nb_pseudos, get_pseudos, original_only):
+def pseudo_batch_generator_supervised(X, y, nb_classes, nb_pseudos, batch_size, get_pseudos, original_only):
 
     #initialize shuffled ind
     if original_only:
@@ -591,7 +633,7 @@ def pseudo_batch_generator_supervised(X, y, nb_classes, batch_size, nb_pseudos, 
         yield X_batch, Y_batch
 
 
-def pseudo_batch_generator(X, batch_size, nb_pseudos, get_pseudos, original_only):
+def pseudo_batch_generator(X, nb_pseudos, batch_size, get_pseudos, original_only):
 
     if type(X) is not tuple:
         X =  (X, )
@@ -723,7 +765,7 @@ def print_stats(verbose, stat_type, **kwargs) :
     if verbose:
 
         if stat_type == 1:
-
+            print("=" * 80)
             test_data = kwargs.get('test_data')
             X_train = kwargs.get('X_train')
             nb_pseudos = kwargs.get('nb_pseudos')
@@ -772,3 +814,41 @@ def print_stats(verbose, stat_type, **kwargs) :
             if rerun_start is not None and rerun_end is not None and nb_reruns is not None and rerun is not None:
                 print('Estimated remaining run time: ' + str(int((rerun_end-rerun_start)*(nb_reruns-(rerun+1)))) + ' sec')
             print("=" * 80)
+
+        elif stat_type == 4:
+            print("=" * 80)
+            X_train = kwargs.get('X_train')
+            nb_pseudos = kwargs.get('nb_pseudos')
+            if X_train is not None and nb_pseudos is not None:
+                print('Pre-train on %d labeled samples using %d pseudo classes' %
+                (len(X_train), nb_pseudos))
+            print("=" * 80)
+
+        elif stat_type == 5:
+            acol_metrics = kwargs.get('acol_metrics')
+            print("=" * 80)
+            if acol_metrics is not None:
+                print('Stats at the end of pre-training')
+                print('ACOL metrics: Affinity: %.3f, Balance: %.3f, Coactivity: %.3f' %
+                     (acol_metrics[0], acol_metrics[1], acol_metrics[2]))
+            print("=" * 80)
+
+def get_model_pre_params(model_params, nb_pseudos, nb_classes):
+
+    _model_params = list(model_params[0])
+
+    _model_params[1] = nb_pseudos*nb_classes    #output size of model_pre
+    _model_params[4] = model_params[1][0]       #hidden_drop of model_pre
+
+    _model_params[5] = list(_model_params[5])
+    _model_params[5][0] = 1                     #K is always 1 in model_pre
+    _model_params[5][1] = 0.                    #p is always 0 in model_pre
+    _model_params[5][2] = model_params[1][1]    #set c1 for model_pre
+    _model_params[5][3] = model_params[1][2]    #set c2 for model_pre
+    _model_params[5][4] = model_params[1][3]    #set c3 for model_pre
+    _model_params[5][5] = model_params[1][4]    #set c4 for model_pre
+    _model_params[5] = tuple(_model_params[5])
+
+    _model_params = tuple(_model_params)
+
+    return _model_params
