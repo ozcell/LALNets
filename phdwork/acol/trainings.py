@@ -309,7 +309,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
                                                define_model, _model_params, optimizer[1],
                                                X_train[1], y_train[1], nb_labeled,
                                                get_pseudos, nb_epoch[1], sum(batch_size),
-                                               verbose=1):
+                                               verbose=1)
 
         #add pooling layer initialization, null node and truncation info
         #if nb_pseudos==1 then adds a null output node with no connection to any of softmaxx
