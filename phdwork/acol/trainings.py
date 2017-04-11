@@ -433,7 +433,7 @@ def train_pre(nb_pseudos,
 
 
         #add pooling layer initialization, null node and truncation info
-        _model_params = model_params + ('identity_vstacked', (nb_pseudos==1), False)
+        _model_params = model_params + ('identity_vstacked', False, False)
         #define model_pre for each run
         model = define_model(*_model_params)
         #and compile
