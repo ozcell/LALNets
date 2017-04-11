@@ -49,9 +49,11 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
         for item in metrics.itervalues():
             item.append([])
 
-        #add truncation info
-        _model_params = model_params + (False,)
-        _model_truncated_params = model_params + (True,)
+        #add pooling layer initialization, null node and truncation info
+        #if nb_parents==1 then adds a null output node with no connection to any of softmaxx
+        #this is to prevent the errors in case of number of outputs is 1
+        _model_params = model_params + ('identity_vstacked', (nb_parents==1), False,)
+        _model_truncated_params = model_params + ('identity_vstacked', (nb_parents==1), True,)
 
         #define models for each run
         model = define_model(*_model_params)
@@ -331,7 +333,6 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         model.compile(loss='categorical_crossentropy', optimizer=optimizer[0], metrics=["accuracy"])
         model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer[0], metrics=["accuracy"])
 
-
         #transfer weights of pretraining
         weights_model_pre = []
         weights_model_pre.extend(model_pre.get_weights()[0:-1])
@@ -561,48 +562,6 @@ def fit_pseudo_supervised(self, X, y, nb_classes, nb_pseudos, batch_size, nb_epo
 
 
 Model.fit_pseudo_supervised = fit_pseudo_supervised
-
-
-def pseudo_batch_generator_old(X, batch_size, nb_pseudos, get_pseudos, original_only):
-
-    #initialize shuffled ind
-    if original_only:
-        ind = np.random.permutation(len(X))
-    else:
-        ind = np.random.permutation(nb_pseudos*len(X))
-
-    for ind_batch_start in range(0, len(ind), batch_size):
-
-        #if the last batch then the size is the number of remaining samples
-        if ind_batch_start+batch_size > len(ind):
-            ind_batch = ind[ind_batch_start::]
-        else:
-            ind_batch = ind[ind_batch_start:ind_batch_start+batch_size]
-
-        #ind_batch%len(X) --> which sample
-        #ind_batch/len(X) --> which pseudo label
-
-        #take a batch of X depending of the remainder
-        X_batch = X[ind_batch%len(X),]
-
-        #create pseudo labels
-        if original_only:
-            y_batch = np.zeros_like(ind_batch) #create all zeros output labels
-        else:
-            y_batch = ind_batch/len(X) #create suffled eqaully distributed
-                                             #labels with values 0 to nb_pseudos
-
-        #in case if nb_pseudos=1 to support null_node
-        if nb_pseudos > 1:
-            Y_batch = np_utils.to_categorical(y_batch, nb_pseudos)
-        else:
-            Y_batch = np_utils.to_categorical(y_batch, nb_pseudos+1)
-
-        #transform X according to pseudo labels
-        for pseudo in range(nb_pseudos):
-            X_batch[y_batch==pseudo,] = get_pseudos(X_batch[y_batch==pseudo,], pseudo)
-
-        yield X_batch, Y_batch
 
 
 def pseudo_batch_generator_supervised(X, y, nb_classes, nb_pseudos, batch_size, get_pseudos, original_only):
