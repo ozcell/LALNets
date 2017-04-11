@@ -130,8 +130,8 @@ def choose_samples(X, y, nb_classes, nb_samples_per_class):
     return X[ind_chosen, ], y[ind_chosen]
 
 def feature_wise_normalization(X):
-    
+
     X -= X.mean(axis=(1,2,3), keepdims=True)
     X /= X.std(axis=(1,2,3), keepdims=True) + 1e-8
 
-    return
+    return X
