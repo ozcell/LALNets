@@ -66,3 +66,29 @@ def load_svhn(order='th'):
     del test_data
 
     return (X_train, y_train), (X_test, y_test), input_shape
+
+def load_norb(order='th'):
+
+    # input image dimensions
+    img_rows, img_cols, img_channels,  = 96, 96, 1
+
+    if order == 'tf':
+        input_shape=(img_rows, img_cols, img_channels)
+    elif order == 'th':
+        input_shape=(img_channels, img_rows, img_cols)
+
+    X_train = np.load('/home/ozsel/Jupyter/datasets/norb/X_train.npy')
+    y_train = np.load('/home/ozsel/Jupyter/datasets/norb/y_train.npy')
+
+    X_train = X_train.reshape(len(X_train)*2, input_shape[0], input_shape[1], input_shape[2])
+    X_train = X_train.astype('float32')
+    X_train /= 255
+
+    X_test = np.load('/home/ozsel/Jupyter/datasets/norb/X_test.npy')
+    y_test = np.load('/home/ozsel/Jupyter/datasets/norb/y_test.npy')
+
+    X_test = X_test.reshape(len(X_test)*2, input_shape[0], input_shape[1], input_shape[2])
+    X_test = X_test.astype('float32')
+    X_test /= 255
+
+    return (X_train, y_train), (X_test, y_test), input_shape
