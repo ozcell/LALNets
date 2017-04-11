@@ -636,11 +636,7 @@ def pseudo_batch_generator_supervised(X, y, nb_classes, nb_pseudos, batch_size, 
         else:
             y_batch = y[ind_batch%len(X)]*nb_pseudos + ind_batch/len(X)
 
-        #in case if nb_pseudos=1 to support null_node
-        if nb_pseudos > 1:
-            Y_batch = np_utils.to_categorical(y_batch, nb_pseudos*nb_classes)
-        else:
-            Y_batch = np_utils.to_categorical(y_batch, (nb_pseudos+1)*nb_classes)
+        Y_batch = np_utils.to_categorical(y_batch, nb_pseudos*nb_classes)
 
         #transform X according to pseudo labels
         for pseudo in range(nb_pseudos):
