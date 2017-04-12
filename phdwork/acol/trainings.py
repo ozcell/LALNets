@@ -18,7 +18,7 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
                        nb_reruns, nb_epoch, nb_dpoints, batch_size,
                        test_on_test_set=True, update_c3=None,
                        return_model=False,
-                       save_after_each_rerun_to_path=False, verbose=1):
+                       save_after_each_rerun=False, verbose=1):
 
     #find the values of the dependent variables used inside the script
     nb_all_clusters = nb_parents*nb_clusters_per_parent
@@ -137,7 +137,7 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
         print_stats(verbose, 3, rerun_start=rerun_start, rerun_end=rerun_end,
                     nb_reruns=nb_reruns, rerun=rerun)
 
-        if save_after_each_rerun_to_path:
+        if save_after_each_rerun:
             np.save(save_after_each_rerun + 'metrics.npy', metrics)
             np.save(save_after_each_rerun + 'acti.npy', (acti_train, acti_test))
 
@@ -152,7 +152,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
                        nb_reruns, nb_epoch, nb_dpoints, batch_size,
                        test_on_test_set=True, update_c3=None,
                        set_original_only=None, return_model=False,
-                       save_after_each_rerun_to_path=False, verbose=1):
+                       save_after_each_rerun=False, verbose=1):
 
     #find the values of the dependent variables used inside the script
     nb_all_clusters = nb_pseudos*nb_clusters_per_pseudo
@@ -271,7 +271,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         print_stats(verbose, 3, rerun_start=rerun_start, rerun_end=rerun_end,
                     nb_reruns=nb_reruns, rerun=rerun)
 
-        if save_after_each_rerun_to_path:
+        if save_after_each_rerun:
             np.save(save_after_each_rerun + 'metrics.npy', metrics)
             np.save(save_after_each_rerun + 'acti.npy', (acti_train, acti_test))
 
@@ -286,7 +286,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
                          nb_reruns, nb_epoch, nb_dpoints, batch_size,
                          test_on_test_set=True, update_c3=None,
                          set_original_only=None, return_model=False,
-                         save_after_each_rerun_to_path=False, verbose=1):
+                         save_after_each_rerun=False, verbose=1):
 
     #X_train[0] and y_train[0] are used for unlabeled training
     #nb_labeled samples are chosen from X_train[1] and y_train[1]
@@ -423,7 +423,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         print_stats(verbose, 3, rerun_start=rerun_start, rerun_end=rerun_end,
                     nb_reruns=nb_reruns, rerun=rerun)
 
-        if save_after_each_rerun_to_path:
+        if save_after_each_rerun:
             np.save(save_after_each_rerun + 'metrics.npy', metrics)
             np.save(save_after_each_rerun + 'acti.npy', (acti_train, acti_test))
 
