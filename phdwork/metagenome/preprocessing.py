@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.io as sio
 import pandas as pd
+from __future__ import print_function
 
 
 def get_pseudo_labels_comlete(df, nb_metagenomes=75, nb_pseudos=1000):
