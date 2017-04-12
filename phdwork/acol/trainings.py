@@ -138,8 +138,8 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
                     nb_reruns=nb_reruns, rerun=rerun)
 
         if save_after_each_rerun_to_path:
-            np.save(save_after_each_rerun, metrics)
-            np.save(save_after_each_rerun, (acti_train, acti_test))
+            np.save(save_after_each_rerun + 'metrics.npy', metrics)
+            np.save(save_after_each_rerun + 'acti.npy', (acti_train, acti_test))
 
     return metrics, (acti_train, acti_test), model if return_model else None
 
@@ -272,8 +272,8 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
                     nb_reruns=nb_reruns, rerun=rerun)
 
         if save_after_each_rerun_to_path:
-            np.save(save_after_each_rerun, metrics)
-            np.save(save_after_each_rerun, (acti_train, acti_test))
+            np.save(save_after_each_rerun + 'metrics.npy', metrics)
+            np.save(save_after_each_rerun + 'acti.npy', (acti_train, acti_test))
 
     return metrics, (acti_train, acti_test), model if return_model else None
 
@@ -424,8 +424,8 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
                     nb_reruns=nb_reruns, rerun=rerun)
 
         if save_after_each_rerun_to_path:
-            np.save(save_after_each_rerun, metrics)
-            np.save(save_after_each_rerun, (acti_train, acti_test))
+            np.save(save_after_each_rerun + 'metrics.npy', metrics)
+            np.save(save_after_each_rerun + 'acti.npy', (acti_train, acti_test))
 
     return metrics, (acti_train, acti_test), model if return_model else None
 
