@@ -50,7 +50,7 @@ def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden
         model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool), dim_ordering='th'))
         model.add(Dropout(0.4)) if hidden_drop else model.add(Dropout(0.))
 
-    if cnn_type==4:
+    if cnn_type>3:
 
         model.add(Convolution2D(nb_filters*4, nb_conv, nb_conv,
                             activation='relu', border_mode='same', dim_ordering='th'))
@@ -62,7 +62,7 @@ def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden
         model.add(Dropout(0.4)) if hidden_drop else model.add(Dropout(0.))
 
     model.add(Flatten())
-    if cnn_type < 4:
+    if cnn_type < 5:
         model.add(Dense(2048, activation='relu'))
     else:
         model.add(Dense(4096, activation='relu'))
