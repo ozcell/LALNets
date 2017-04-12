@@ -130,7 +130,7 @@ def load_norb(order='th', path=None, use_pairs=False):
     return (X_train, y_train), (X_test, y_test), input_shape
 
 
-def load_sar11(order='th', path=None, label_type='parent', miniseqs_size=2000, nb_pseudos=100):
+def load_sar11(path=None, label_type='parent', miniseqs_size=2000, nb_pseudos=100):
 
     nb_classes = 75
 

@@ -18,7 +18,7 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
                        nb_reruns, nb_epoch, nb_dpoints, batch_size,
                        test_on_test_set=True, update_c3=None,
                        return_model=False,
-                       save_after_each_rerun=False, verbose=1):
+                       save_after_each_rerun=False, verbose=1, model=None):
 
     #find the values of the dependent variables used inside the script
     nb_all_clusters = nb_parents*nb_clusters_per_parent
@@ -56,13 +56,14 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
         _model_params = model_params + ('identity_vstacked', (nb_parents==1), False,)
         _model_truncated_params = model_params + ('identity_vstacked', (nb_parents==1), True,)
 
-        #define models for each run
-        model = define_model(*_model_params)
-        model_truncated = define_model(*_model_truncated_params)
+        if model is None:
+            #define models for each run
+            model = define_model(*_model_params)
+            model_truncated = define_model(*_model_truncated_params)
 
-        #and compile
-        model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
-        model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
+            #and compile
+            model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
+            model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
 
         #transfer weights to truncated mirror of the model
         model_truncated.set_weights(model.get_weights())
