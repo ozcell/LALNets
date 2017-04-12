@@ -52,7 +52,7 @@ def get_pseudo_labels_mini(df, nb_metagenomes=75, miniseqs_size=100, nb_pseudos=
     return X
 
 
-def get_parent_labels_wrt_gene_call(df, nb_metagenomes=75:
+def get_parent_labels_wrt_gene_call(df, nb_metagenomes=75):
 
     #creates parent labels depending on gene_ids.
     #applies zero padding from shorter genes
