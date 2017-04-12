@@ -1,6 +1,9 @@
 from keras.datasets import mnist
+from phdwork.metagenome.preprocessing import *
+
 import numpy as np
 import scipy.io as sio
+import pandas as pd
 
 def load_mnist(order='th'):
 
@@ -123,3 +126,33 @@ def load_norb(order='th', path=None, use_pairs=False):
         y_test = np.stack((y_test, y_test),axis=-1).reshape(len(y_test)*2,)
 
     return (X_train, y_train), (X_test, y_test), input_shape
+
+
+def load sar11(order='th', path=None, label_type='parent', miniseqs_size=2000, nb_pseudos=100):
+
+    nb_classes = 75
+
+    if label_type == 'pseudo_complete' or label_type == 'pseudo_mini':
+        loc = '/home/ozsel/Jupyter/datasets/metagenome/metagenome75'
+    elif 'parent':
+        loc = '/home/ozsel/Jupyter/datasets/metagenome/metagenome75_sparse.csv'
+    df = pd.read_csv(loc, header=0, sep=',')
+
+    if label_type == 'pseudo_complete':
+        X = get_pseudo_labels_comlete(df, nb_classes, nb_pseudos)
+    elif label_type == 'pseudo_mini':
+        X = get_pseudo_labels_mini(df, nb_classes, miniseqs_size, nb_pseudos)
+    elif label_type == 'parent':
+        X = get_parent_labels_wrt_gene_call(df, nb_classes)
+        nb_pseudos=X.shape[0]/nb_classes
+
+    np.random.shuffle(X)
+
+    X_train = X[:,:,[3,4]].reshape(X.shape[0], X.shape[1]*2)
+    X_train = X_train.astype('float32')
+    X_train = (X_train)/21
+
+    y_train_parents = X[:,0,1]
+    y_train = X[:,0,0]
+
+    return (X_train, y_train, y_train_parents), nb_pseudos
