@@ -37,7 +37,10 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
     metrics = initialize_metrics()
 
     acti_train = np.zeros((len(y_train), nb_all_clusters, nb_reruns))
-    acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
+    if X_test is not None:
+        acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
+    else:
+        acti_test = None
 
     if test_on_test_set:
         test_data=(X_test, Y_test_parent)
@@ -174,7 +177,10 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
     metrics = initialize_metrics()
 
     acti_train = np.zeros((len(y_train), nb_all_clusters, nb_reruns))
-    acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
+    if X_test is not None:
+        acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
+    else:
+        acti_test = None
 
     if test_on_test_set:
         test_data=(X_test, )
@@ -314,7 +320,10 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
     metrics = initialize_metrics()
 
     acti_train = np.zeros((len(y_train[0]), nb_all_clusters, nb_reruns))
-    acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
+    if X_test is not None:
+        acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
+    else:
+        acti_test = None
 
     if test_on_test_set:
         test_data=(X_test, )
