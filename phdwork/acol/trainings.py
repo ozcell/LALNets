@@ -394,7 +394,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         acol_metrics = cumulate_metrics(X_train[0], get_metrics, sum(batch_size))
 
         #calculate clustering accuracy
-        if y_train[0] is not None;
+        if y_train[0] is not None:
             cl_acc = model_truncated.evaluate_clustering(X_train[0], y_train[0], nb_all_clusters, sum(batch_size), verbose=verbose)
         else:
             cl_acc = None
