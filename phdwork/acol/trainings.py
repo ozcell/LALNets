@@ -23,11 +23,7 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
     #find the values of the dependent variables used inside the script
     nb_all_clusters = nb_parents*nb_clusters_per_parent
 
-    # y to Y conversion for original dataset
-    nb_classes = y_train.max() - y_train.min() + 1
-    Y_train = np_utils.to_categorical(y_train, nb_classes)
-    if X_test is not None:
-        Y_test = np_utils.to_categorical(y_test, nb_classes)
+    # y to Y conversion for parent labels
     Y_train_parent = np_utils.to_categorical(y_train_parent, nb_parents)
     if X_test is not None:
         Y_test_parent = np_utils.to_categorical(y_test_parent, nb_parents)
@@ -36,9 +32,9 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
 
     metrics = initialize_metrics()
 
-    acti_train = np.zeros((len(y_train), nb_all_clusters, nb_reruns))
+    acti_train = np.zeros((len(X_train), nb_all_clusters, nb_reruns))
     if X_test is not None:
-        acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
+        acti_test = np.zeros((len(X_test), nb_all_clusters, nb_reruns))
     else:
         acti_test = None
 
@@ -87,9 +83,14 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
         acol_metrics = cumulate_metrics(X_train, get_metrics, batch_size)
 
         #calculate clustering accuracy
-        cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size, verbose=verbose)
-        if X_test is not None:
+        if y_train is not None:
+            cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size, verbose=verbose)
+        else:
+            cl_acc = None
+        if y_test is not None:
             cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, batch_size, verbose=verbose)
+        else:
+            cl_vacc = None
 
         #update experiment metrics
         update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
@@ -118,9 +119,14 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
             acol_metrics = cumulate_metrics(X_train, get_metrics, batch_size)
 
             #calculate clustering accuracy
-            cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size, verbose=verbose)
-            if X_test is not None:
+            if y_train is not None:
+                cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size, verbose=verbose)
+            else:
+                cl_acc = None
+            if y_test is not None:
                 cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, batch_size, verbose=verbose)
+            else:
+                cl_vacc = None
 
             #ACOL c3 update
             if update_c3 is not None:
@@ -166,19 +172,13 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
     #find the values of the dependent variables used inside the script
     nb_all_clusters = nb_pseudos*nb_clusters_per_pseudo
 
-    # y to Y conversion for original dataset
-    nb_classes = y_train.max() - y_train.min() + 1
-    Y_train = np_utils.to_categorical(y_train, nb_classes)
-    if X_test is not None:
-        Y_test = np_utils.to_categorical(y_test, nb_classes)
-
     nb_epoch_per_dpoint = nb_epoch/nb_dpoints
 
     metrics = initialize_metrics()
 
-    acti_train = np.zeros((len(y_train), nb_all_clusters, nb_reruns))
+    acti_train = np.zeros((len(X_train), nb_all_clusters, nb_reruns))
     if X_test is not None:
-        acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
+        acti_test = np.zeros((len(X_test), nb_all_clusters, nb_reruns))
     else:
         acti_test = None
 
@@ -228,9 +228,14 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         acol_metrics = cumulate_metrics(X_train, get_metrics, batch_size)
 
         #calculate clustering accuracy
-        cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size, verbose=verbose)
-        if X_test is not None:
+        if y_train is not None:
+            cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size, verbose=verbose)
+        else:
+            cl_acc = None
+        if y_test is not None:
             cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, batch_size, verbose=verbose)
+        else:
+            cl_vacc = None
 
         #update experiment metrics
         update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
@@ -254,11 +259,16 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
             acol_metrics = cumulate_metrics(X_train, get_metrics, batch_size)
 
             #calculate clustering accuracy
-            cl_acc = model_truncated.evaluate_clustering(X_train, y_train,
-                            nb_all_clusters, batch_size, verbose=verbose)
-            if X_test is not None:
+            if y_train is not None:
+                cl_acc = model_truncated.evaluate_clustering(X_train, y_train,
+                                nb_all_clusters, batch_size, verbose=verbose)
+            else:
+                cl_acc = None
+            if y_test is not None:
                 cl_vacc = model_truncated.evaluate_clustering(X_test, y_test,
                                 nb_all_clusters, batch_size, verbose=verbose)
+            else:
+                cl_vacc = None
 
             #ACOL c3 update
             if update_c3 is not None:
@@ -310,18 +320,15 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
     nb_all_clusters = nb_pseudos*nb_clusters_per_pseudo
 
     # y to Y conversion for original dataset
-    nb_classes = y_train[0].max() - y_train[0].min() + 1
-    Y_train = np_utils.to_categorical(y_train[0], nb_classes)
-    if X_test is not None:
-        Y_test = np_utils.to_categorical(y_test, nb_classes)
+    nb_classes = y_train[1].max() - y_train[1].min() + 1
 
     nb_epoch_per_dpoint = nb_epoch[0]/nb_dpoints
 
     metrics = initialize_metrics()
 
-    acti_train = np.zeros((len(y_train[0]), nb_all_clusters, nb_reruns))
+    acti_train = np.zeros((len(X_train[0]), nb_all_clusters, nb_reruns))
     if X_test is not None:
-        acti_test = np.zeros((len(y_test), nb_all_clusters, nb_reruns))
+        acti_test = np.zeros((len(X_test), nb_all_clusters, nb_reruns))
     else:
         acti_test = None
 
@@ -387,9 +394,14 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         acol_metrics = cumulate_metrics(X_train[0], get_metrics, sum(batch_size))
 
         #calculate clustering accuracy
-        cl_acc = model_truncated.evaluate_clustering(X_train[0], y_train[0], nb_all_clusters, sum(batch_size), verbose=verbose)
-        if X_test is not None:
+        if y_train[0] is not None;
+            cl_acc = model_truncated.evaluate_clustering(X_train[0], y_train[0], nb_all_clusters, sum(batch_size), verbose=verbose)
+        else:
+            cl_acc = None
+        if y_test is not None:
             cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, sum(batch_size), verbose=verbose)
+        else:
+            cl_vacc = None
 
         #update experiment metrics
         update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
@@ -413,11 +425,16 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
             acol_metrics = cumulate_metrics(X_train[0], get_metrics, sum(batch_size))
 
             #calculate clustering accuracy
-            cl_acc = model_truncated.evaluate_clustering(X_train[0], y_train[0],
-                            nb_all_clusters, sum(batch_size), verbose=verbose)
-            if X_test is not None:
+            if y_train[0] is not None:
+                cl_acc = model_truncated.evaluate_clustering(X_train[0], y_train[0],
+                                nb_all_clusters, sum(batch_size), verbose=verbose)
+            else:
+                cl_acc = None
+            if y_test is not None:
                 cl_vacc = model_truncated.evaluate_clustering(X_test, y_test,
                                 nb_all_clusters, sum(batch_size), verbose=verbose)
+            else:
+                cl_vacc = None
 
             #ACOL c3 update
             if update_c3 is not None:
