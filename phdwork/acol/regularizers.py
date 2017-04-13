@@ -55,10 +55,10 @@ class AcolRegularizer(Regularizer):
 
     def get_config(self):
         return {'name': self.__class__.__name__,
-                'c1': float(self.c1),
-                'c2': float(self.c2),
-                'c3': float(self.c3),
-                'c4': float(self.c4)}
+                'c1': K.cast_to_floatx(c1.eval()),
+                'c2': K.cast_to_floatx(c2.eval()),
+                'c3': K.cast_to_floatx(c3.eval()),
+                'c4': K.cast_to_floatx(c4.eval())}
 
 # Aliases.
 
