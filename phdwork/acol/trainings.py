@@ -26,9 +26,11 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
     # y to Y conversion for original dataset
     nb_classes = y_train.max() - y_train.min() + 1
     Y_train = np_utils.to_categorical(y_train, nb_classes)
-    Y_test = np_utils.to_categorical(y_test, nb_classes)
+    if X_test is not None:
+        Y_test = np_utils.to_categorical(y_test, nb_classes)
     Y_train_parent = np_utils.to_categorical(y_train_parent, nb_parents)
-    Y_test_parent = np_utils.to_categorical(y_test_parent, nb_parents)
+    if X_test is not None:
+        Y_test_parent = np_utils.to_categorical(y_test_parent, nb_parents)
 
     nb_epoch_per_dpoint = nb_epoch/nb_dpoints
 
@@ -164,7 +166,8 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
     # y to Y conversion for original dataset
     nb_classes = y_train.max() - y_train.min() + 1
     Y_train = np_utils.to_categorical(y_train, nb_classes)
-    Y_test = np_utils.to_categorical(y_test, nb_classes)
+    if X_test is not None:
+        Y_test = np_utils.to_categorical(y_test, nb_classes)
 
     nb_epoch_per_dpoint = nb_epoch/nb_dpoints
 
@@ -303,7 +306,8 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
     # y to Y conversion for original dataset
     nb_classes = y_train[0].max() - y_train[0].min() + 1
     Y_train = np_utils.to_categorical(y_train[0], nb_classes)
-    Y_test = np_utils.to_categorical(y_test, nb_classes)
+    if X_test is not None:
+        Y_test = np_utils.to_categorical(y_test, nb_classes)
 
     nb_epoch_per_dpoint = nb_epoch[0]/nb_dpoints
 

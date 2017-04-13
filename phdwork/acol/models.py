@@ -7,6 +7,7 @@ Model generator for ACOL experiments.
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten, Layer
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
+from keras.constraints import maxnorm
 
 from phdwork.acol.layers.pooling import AveragePooling, MaxPooling
 from phdwork.acol.regularizers import activity_acol

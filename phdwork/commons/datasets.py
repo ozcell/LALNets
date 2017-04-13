@@ -159,4 +159,4 @@ def load_sar11(path=None, label_type='parent', miniseqs_size=2000, nb_pseudos=10
 
     input_shape = (X_train.shape[1],)
 
-    return (X_train, y_train, y_train_parents), nb_pseudos, input_shape
+    return (X_train, y_train, y_train_pseudo), nb_pseudos, input_shape
