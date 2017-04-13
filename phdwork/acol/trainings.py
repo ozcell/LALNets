@@ -55,22 +55,17 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
         #if nb_parents==1 then adds a null output node with no connection to any of softmaxx
         #this is to prevent the errors in case of number of outputs is 1
         _model_params = model_params + ('identity_vstacked', (nb_parents==1), False,)
-        _model_truncated_params = model_params + ('identity_vstacked', (nb_parents==1), True,)
-
         #define model for each run
         model = define_model(*_model_params)
-        model_truncated = define_model(*_model_truncated_params)
-
         #and compile
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
-        model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
 
         #if a model_in is passed used its weighs
         if model_in is not None:
             model.set_weights(model_in.get_weights())
 
-        #transfer weights to truncated mirror of the model
-        model_truncated.set_weights(model.get_weights())
+        #get truncated mirror of the model
+        model_truncated = model.get_model_truncated(define_model, model_params, nb_parents)
 
         #define a Theano function to reach values of ACOL metrics
         get_metrics = model.define_get_metrics()
@@ -202,22 +197,17 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         #if nb_pseudos==1 then adds a null output node with no connection to any of softmaxx
         #this is to prevent the errors in case of number of outputs is 1
         _model_params = model_params + ('identity_vstacked', (nb_pseudos==1), False,)
-        _model_truncated_params = model_params + ('identity_vstacked', (nb_pseudos==1), True,)
-
         #define model for each run
         model = define_model(*_model_params)
-        model_truncated = define_model(*_model_truncated_params)
-
         #and compile
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
-        model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
 
         #if a model_in is passed used its weighs
         if model_in is not None:
             model.set_weights(model_in.get_weights())
 
-        #transfer weights to truncated mirror of the model
-        model_truncated.set_weights(model.get_weights())
+        #get truncated mirror of the model
+        model_truncated = model.get_model_truncated(define_model, model_params, nb_parents)
 
         #train only using the original dataset i.e. X^*(0)
         original_only = False
@@ -366,30 +356,24 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         #if nb_pseudos==1 then adds a null output node with no connection to any of softmaxx
         #this is to prevent the errors in case of number of outputs is 1
         _model_params = model_params[0] + ('identity_vstacked', (nb_pseudos==1), False)
-        _model_truncated_params = model_params[0] + ('identity_vstacked', (nb_pseudos==1), True)
-
         #define models for each run
         model = define_model(*_model_params)
-        model_truncated = define_model(*_model_truncated_params)
-
         #and compile
         model.compile(loss='categorical_crossentropy', optimizer=optimizer[0], metrics=["accuracy"])
-        model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer[0], metrics=["accuracy"])
 
         #transfer weights of pretraining
         weights_model_pre = []
         weights_model_pre.extend(model_pre.get_weights()[0:-1])
         weights_model_pre.append(model.get_weights()[-1])
 
-
-
         #if a model_in is passed used its weighs
         if model_in is not None:
             model.set_weights(model_in.get_weights())
         else:
             model.set_weights(weights_model_pre)
-        #transfer weights to truncated mirror of the model
-        model_truncated.set_weights(model.get_weights())
+
+        #get truncated mirror of the model
+        model_truncated = model.get_model_truncated(define_model, model_params, nb_parents)
 
         #train only using the original dataset i.e. X^*(0)
         original_only = False
@@ -890,3 +874,14 @@ def get_model_pre_params(model_params, nb_pseudos, nb_classes):
     _model_params = tuple(_model_params)
 
     return _model_params
+
+
+def get_model_truncated(self, define_model, model_params, nb_parents):
+
+    _model_params = model_params + ('identity_vstacked', (nb_parents==1), True)
+    model_truncated = define_model(*_model_params)
+    model_truncated.set_weights(self.get_weights())
+
+    return model_truncated
+
+Model.get_model_truncated = get_model_truncated
