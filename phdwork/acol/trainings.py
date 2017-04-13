@@ -18,7 +18,7 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
                        nb_reruns, nb_epoch, nb_dpoints, batch_size,
                        test_on_test_set=True, update_c3=None,
                        return_model=False,
-                       save_after_each_rerun=False, verbose=1, model=None):
+                       save_after_each_rerun=False, verbose=1, model_in=None):
 
     #find the values of the dependent variables used inside the script
     nb_all_clusters = nb_parents*nb_clusters_per_parent
@@ -57,14 +57,17 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
         _model_params = model_params + ('identity_vstacked', (nb_parents==1), False,)
         _model_truncated_params = model_params + ('identity_vstacked', (nb_parents==1), True,)
 
-        if model is None:
-            #define models for each run
-            model = define_model(*_model_params)
-            model_truncated = define_model(*_model_truncated_params)
+        #define model for each run
+        model = define_model(*_model_params)
+        model_truncated = define_model(*_model_truncated_params)
 
-            #and compile
-            model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
-            model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
+        #and compile
+        model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
+        model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
+
+        #if a model_in is passed used its weighs
+        if model_in is not None:
+            model.set_weights(model_in.get_weights())
 
         #transfer weights to truncated mirror of the model
         model_truncated.set_weights(model.get_weights())
@@ -167,7 +170,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
                        nb_reruns, nb_epoch, nb_dpoints, batch_size,
                        test_on_test_set=True, update_c3=None,
                        set_original_only=None, return_model=False,
-                       save_after_each_rerun=False, verbose=1):
+                       save_after_each_rerun=False, verbose=1, model_in=None):
 
     #find the values of the dependent variables used inside the script
     nb_all_clusters = nb_pseudos*nb_clusters_per_pseudo
@@ -201,13 +204,17 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         _model_params = model_params + ('identity_vstacked', (nb_pseudos==1), False,)
         _model_truncated_params = model_params + ('identity_vstacked', (nb_pseudos==1), True,)
 
-        #define models for each run
+        #define model for each run
         model = define_model(*_model_params)
         model_truncated = define_model(*_model_truncated_params)
 
         #and compile
         model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
         model_truncated.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=["accuracy"])
+
+        #if a model_in is passed used its weighs
+        if model_in is not None:
+            model.set_weights(model_in.get_weights())
 
         #transfer weights to truncated mirror of the model
         model_truncated.set_weights(model.get_weights())
@@ -312,7 +319,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
                          nb_reruns, nb_epoch, nb_dpoints, batch_size,
                          test_on_test_set=True, update_c3=None,
                          set_original_only=None, return_model=False,
-                         save_after_each_rerun=False, verbose=1):
+                         save_after_each_rerun=False, verbose=1, model_in=False):
 
     #X_train[0] and y_train[0] are used for unlabeled training
     #nb_labeled samples are chosen from X_train[1] and y_train[1]
@@ -374,7 +381,13 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         weights_model_pre.extend(model_pre.get_weights()[0:-1])
         weights_model_pre.append(model.get_weights()[-1])
 
-        model.set_weights(weights_model_pre)
+
+
+        #if a model_in is passed used its weighs
+        if model_in is not None:
+            model.set_weights(model_in.get_weights())
+        else:
+            model.set_weights(weights_model_pre)
         #transfer weights to truncated mirror of the model
         model_truncated.set_weights(model.get_weights())
 
