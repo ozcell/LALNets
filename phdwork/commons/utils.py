@@ -4,6 +4,7 @@ Essential functions commonly used in scripts.
 '''
 
 import numpy as np
+import pandas as pd
 
 
 def combine_classes(y, nb_parents):

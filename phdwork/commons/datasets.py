@@ -156,7 +156,7 @@ def load_sar11(path=None, label_type='parent', miniseqs_size=2000, nb_parents=10
 
     y_train_pseudo = X[:,0,1].astype('int')
     sample_ids = X[:,0,0].astype('int')
-    sample_id_map = np.load('/home/ozsel/Jupyter/datasets/metagenome/sample_id_map')
+    sample_id_map = np.load('/home/ozsel/Jupyter/datasets/metagenome/sample_id_map_shorten')
 
     input_shape = (X_train.shape[1],)
 
