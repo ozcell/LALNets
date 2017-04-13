@@ -130,23 +130,23 @@ def load_norb(order='th', path=None, use_pairs=False):
     return (X_train, y_train), (X_test, y_test), input_shape
 
 
-def load_sar11(path=None, label_type='parent', miniseqs_size=2000, nb_pseudos=100):
+def load_sar11(path=None, label_type='parent', miniseqs_size=2000, nb_parents=100):
 
-    nb_classes = 75
+    nb_samples = 75
 
     if label_type == 'pseudo_complete' or label_type == 'pseudo_mini':
         loc = '/home/ozsel/Jupyter/datasets/metagenome/metagenome75'
     elif 'parent':
-        loc = '/home/ozsel/Jupyter/datasets/metagenome/metagenome75_sparse.csv'
+        loc = '/home/ozsel/Jupyter/datasets/metagenome/metagenome75_sparse'
     df = pd.read_csv(loc, header=0, sep=',')
 
     if label_type == 'pseudo_complete':
-        X = get_pseudo_labels_comlete(df, nb_classes, nb_pseudos)
+        X = get_pseudo_labels_comlete(df, nb_samples, nb_parents)
     elif label_type == 'pseudo_mini':
-        X = get_pseudo_labels_mini(df, nb_classes, miniseqs_size, nb_pseudos)
+        X = get_pseudo_labels_mini(df, nb_samples, miniseqs_size, nb_parents)
     elif label_type == 'parent':
-        X = get_parent_labels_wrt_gene_call(df, nb_classes)
-        nb_pseudos=X.shape[0]/nb_classes
+        X = get_parent_labels_wrt_gene_call(df, nb_samples)
+        nb_parents=X.shape[0]/nb_samples
 
     np.random.shuffle(X)
 
@@ -155,8 +155,9 @@ def load_sar11(path=None, label_type='parent', miniseqs_size=2000, nb_pseudos=10
     X_train = (X_train)/21
 
     y_train_pseudo = X[:,0,1].astype('int')
-    y_train = X[:,0,0].astype('int')
+    sample_ids = X[:,0,0].astype('int')
+    sample_id_map = np.load('/home/ozsel/Jupyter/datasets/metagenome/sample_id_map')
 
     input_shape = (X_train.shape[1],)
 
-    return (X_train, y_train, y_train_pseudo), nb_pseudos, input_shape
+    return (X_train, y_train_pseudo), (sample_ids, sample_id_map), nb_parents, input_shape

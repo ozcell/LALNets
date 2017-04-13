@@ -131,7 +131,48 @@ def choose_samples(X, y, nb_classes, nb_samples_per_class):
 
 def feature_wise_normalization(X):
 
-    X -= X.mean(axis=(1,2,3), keepdims=True)
-    X /= X.std(axis=(1,2,3), keepdims=True) + 1e-8
+    if len(X.shape) == 2:
+        X -= X.mean(axis=(1), keepdims=True)
+        X /= X.std(axis=(1), keepdims=True) + 1e-8
+    elif len(X.shape) == 3:
+        X -= X.mean(axis=(1,2), keepdims=True)
+        X /= X.std(axis=(1,2), keepdims=True) + 1e-8
+    elif len(X.shape) == 4:
+        X -= X.mean(axis=(1,2,3), keepdims=True)
+        X /= X.std(axis=(1,2,3), keepdims=True) + 1e-8
 
     return X
+
+def get_similarity_matrix(sample_ids, est, nb_parents, nb_clusters_per_parent, weighted=False):
+
+    nb_samples = sample_ids.max() - sample_ids.min() + 1
+
+    a = np.zeros((nb_parents, nb_clusters_per_parent))
+    for i in np.arange(est.shape[0]):
+        k = est[i]%nb_parents
+        l = est[i]/nb_parents
+        a[k,l] += 1
+
+    sim = np.zeros((nb_samples, nb_samples))
+    b = sample_ids
+    c = est
+    for i in pd.factorize(np.sort(est))[1]:
+        d = np.sort(b[c==i]).astype(int)
+        if len(d)>0:
+            if weighted:
+                sim[d.reshape(len(d),1),d.reshape(1,len(d))] += 1/float(len(d))
+            else:
+                sim[d.reshape(len(d),1),d.reshape(1,len(d))] += 1.
+
+    sim = np.triu(sim,1)
+    sim = sim - sim[sim.nonzero()].min()
+    sim = np.triu(sim,1)
+    sim = sim / sim.max()
+    sim = np.triu(sim,1)
+
+    sim = np.triu(sim,1).T+np.triu(sim,1)
+
+    for i in range(75):
+        sim[i,i] = 1
+
+    return a, sim
