@@ -5,6 +5,7 @@ Model generator for ACOL experiments.
 '''
 
 from keras.models import Sequential
+from keras.engine.topology import InputLayer
 from keras.layers.core import Dense, Dropout, Activation, Flatten, Layer
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.constraints import maxnorm
@@ -97,7 +98,10 @@ def define_mlp(input_shape, nb_classes, mlp_params=(3, 2048, 0., 0.5, 2.),
         AcolPooling = MaxPooling
 
     model = Sequential()
-    model.add(Dropout(p_i, input_shape=input_shape))
+    if p_i:
+        model.add(Dropout(p_i, input_shape=input_shape))
+    else:
+        model.add(InputLayer(input_shape=input_shape))
     for layer in range(nb_layers):
         model.add(Dense(nb_nodes, activation='relu', W_constraint=maxnorm(m_n)))
         model.add(Dropout(p_hl))

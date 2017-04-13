@@ -154,8 +154,8 @@ def load_sar11(path=None, label_type='parent', miniseqs_size=2000, nb_pseudos=10
     X_train = X_train.astype('float32')
     X_train = (X_train)/21
 
-    y_train_pseudo = X[:,0,1]
-    y_train = X[:,0,0]
+    y_train_pseudo = X[:,0,1].astype('int')
+    y_train = X[:,0,0].astype('int')
 
     input_shape = (X_train.shape[1],)
 

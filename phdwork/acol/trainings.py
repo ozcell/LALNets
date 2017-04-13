@@ -86,11 +86,11 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
         if y_train is not None:
             cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size, verbose=verbose)
         else:
-            cl_acc = None
+            cl_acc = 0.
         if y_test is not None:
             cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, batch_size, verbose=verbose)
         else:
-            cl_vacc = None
+            cl_vacc = 0.
 
         #update experiment metrics
         update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
@@ -122,11 +122,11 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
             if y_train is not None:
                 cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size, verbose=verbose)
             else:
-                cl_acc = None
+                cl_acc = 0.
             if y_test is not None:
                 cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, batch_size, verbose=verbose)
             else:
-                cl_vacc = None
+                cl_vacc = 0.
 
             #ACOL c3 update
             if update_c3 is not None:
@@ -231,11 +231,11 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
         if y_train is not None:
             cl_acc = model_truncated.evaluate_clustering(X_train, y_train, nb_all_clusters, batch_size, verbose=verbose)
         else:
-            cl_acc = None
+            cl_acc = 0.
         if y_test is not None:
             cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, batch_size, verbose=verbose)
         else:
-            cl_vacc = None
+            cl_vacc = 0.
 
         #update experiment metrics
         update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
@@ -263,12 +263,12 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
                 cl_acc = model_truncated.evaluate_clustering(X_train, y_train,
                                 nb_all_clusters, batch_size, verbose=verbose)
             else:
-                cl_acc = None
+                cl_acc = 0.
             if y_test is not None:
                 cl_vacc = model_truncated.evaluate_clustering(X_test, y_test,
                                 nb_all_clusters, batch_size, verbose=verbose)
             else:
-                cl_vacc = None
+                cl_vacc = 0.
 
             #ACOL c3 update
             if update_c3 is not None:
@@ -397,11 +397,11 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         if y_train[0] is not None:
             cl_acc = model_truncated.evaluate_clustering(X_train[0], y_train[0], nb_all_clusters, sum(batch_size), verbose=verbose)
         else:
-            cl_acc = None
+            cl_acc = 0.
         if y_test is not None:
             cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, sum(batch_size), verbose=verbose)
         else:
-            cl_vacc = None
+            cl_vacc = 0.
 
         #update experiment metrics
         update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
@@ -429,12 +429,12 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
                 cl_acc = model_truncated.evaluate_clustering(X_train[0], y_train[0],
                                 nb_all_clusters, sum(batch_size), verbose=verbose)
             else:
-                cl_acc = None
+                cl_acc = 0.
             if y_test is not None:
                 cl_vacc = model_truncated.evaluate_clustering(X_test, y_test,
                                 nb_all_clusters, sum(batch_size), verbose=verbose)
             else:
-                cl_vacc = None
+                cl_vacc = 0.
 
             #ACOL c3 update
             if update_c3 is not None:
