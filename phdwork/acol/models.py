@@ -99,7 +99,7 @@ def define_mlp(input_shape, nb_classes, mlp_params=(3, 2048, 0., 0.5, 2.),
     model = Sequential()
     model.add(Dropout(p_i, input_shape=input_shape))
     for layer in range(nb_layers):
-        model.add(Dense(nb_nodes, actication='relu', W_constraint=maxnorm(m_n)))
+        model.add(Dense(nb_nodes, activation='relu', W_constraint=maxnorm(m_n)))
         model.add(Dropout(p_hl))
 
     model.add(Dense(nb_classes*K, activity_regularizer=activity_acol(c1, c2, c3, c4), name='L-1'))
