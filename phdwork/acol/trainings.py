@@ -207,7 +207,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
             model.set_weights(model_in.get_weights())
 
         #get truncated mirror of the model
-        model_truncated = model.get_model_truncated(define_model, model_params, nb_parents)
+        model_truncated = model.get_model_truncated(define_model, model_params, nb_pseudos)
 
         #train only using the original dataset i.e. X^*(0)
         original_only = False
@@ -373,7 +373,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
             model.set_weights(weights_model_pre)
 
         #get truncated mirror of the model
-        model_truncated = model.get_model_truncated(define_model, model_params, nb_parents)
+        model_truncated = model.get_model_truncated(define_model, model_params, nb_pseudos)
 
         #train only using the original dataset i.e. X^*(0)
         original_only = False

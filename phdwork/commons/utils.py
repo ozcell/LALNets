@@ -177,3 +177,15 @@ def get_similarity_matrix(sample_ids, est, nb_parents, nb_clusters_per_parent, w
         sim[i,i] = 1
 
     return a, sim
+
+
+def get_nb_nonempty_clusterings(a):
+
+    clusters = np.zeros(a.shape[1]-1)
+    a.sort(axis=1)
+    sum_higher = 0
+    for j in range(a.shape[1]-1):
+        clusters[j] = (a[:,j]!=0).sum() - sum_higher
+        sum_higher += (a[:,j]!=0).sum() - sum_higher
+
+    return clusters
