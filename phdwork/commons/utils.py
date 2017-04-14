@@ -126,6 +126,9 @@ def choose_samples(X, y, nb_classes, nb_samples_per_class):
         ind_samples = ind_samples[0:nb_samples_per_class]
         ind_chosen.extend(ind_samples)
 
+
+    print(ind_chosen)
+
     np.random.shuffle(ind_chosen)
 
     return X[ind_chosen, ], y[ind_chosen]
