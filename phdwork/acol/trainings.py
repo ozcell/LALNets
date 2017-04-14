@@ -553,7 +553,7 @@ def fit_pseudo(self, X, nb_pseudos, batch_size, nb_epoch,
             history_train.extend(history_test)
 
         if verbose:
-            progbar.update(1, values=values)
+            progbar.add(1, values=values)
 
     return history_train
 
@@ -606,7 +606,7 @@ def fit_pseudo_supervised(self, X, y, nb_classes, nb_pseudos, batch_size, nb_epo
             history_train.extend(history_test)
 
         if verbose:
-            progbar.update(1, values=values)
+            progbar.add(1, values=values)
 
     return history_train
 
