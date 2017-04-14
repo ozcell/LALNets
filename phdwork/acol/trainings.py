@@ -373,7 +373,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
             model.set_weights(weights_model_pre)
 
         #get truncated mirror of the model
-        model_truncated = model.get_model_truncated(define_model, model_params, nb_pseudos)
+        model_truncated = model.get_model_truncated(define_model, model_params[0], nb_pseudos)
 
         #train only using the original dataset i.e. X^*(0)
         original_only = False
