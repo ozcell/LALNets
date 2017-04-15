@@ -480,7 +480,7 @@ def train_pre(nb_pseudos,
 
         #randomly choose nb_labeled samples from X_train
         X_train_labeled, y_train_labeled = choose_samples(X_train, y_train,
-                                                nb_classes, nb_labeled/nb_classes)
+                                                nb_classes, nb_labeled/nb_classes, verbose=verbose)
 
 
         #add pooling layer initialization, null node and truncation info

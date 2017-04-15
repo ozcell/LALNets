@@ -113,7 +113,7 @@ def get_acception_activations(acti, nb_parents, acception_type='cluster_wise'):
 
     return acti_clusters
 
-def choose_samples(X, y, nb_classes, nb_samples_per_class):
+def choose_samples(X, y, nb_classes, nb_samples_per_class, verbose=1):
 
     perm = np.random.permutation
     ind_chosen= []
@@ -126,8 +126,8 @@ def choose_samples(X, y, nb_classes, nb_samples_per_class):
         ind_samples = ind_samples[0:nb_samples_per_class]
         ind_chosen.extend(ind_samples)
 
-
-    print(ind_chosen)
+    if verbose > 1:
+        print(ind_chosen)
 
     np.random.shuffle(ind_chosen)
 
