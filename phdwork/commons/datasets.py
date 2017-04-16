@@ -1,4 +1,5 @@
 from keras.datasets import mnist
+from sklearn.datasets import fetch_rcv1
 from phdwork.metagenome.preprocessing import *
 
 import numpy as np
@@ -161,3 +162,32 @@ def load_sar11(path=None, label_type='parent', miniseqs_size=2000, nb_parents=10
     input_shape = (X_train.shape[1],)
 
     return (X_train, y_train_pseudo), (sample_ids, sample_id_map), nb_parents, input_shape
+
+
+def load_reuters(nb_words=2000, test_split=0.2):
+
+    rcv1 = fetch_rcv1()
+
+    ind_ccat = (rcv1.target[:,33] == 1).toarray().reshape(804414)
+    ind_ecat = (rcv1.target[:,59] == 1).toarray().reshape(804414)
+    ind_gcat = (rcv1.target[:,70] == 1).toarray().reshape(804414)
+    ind_mcat = (rcv1.target[:,102] == 1).toarray().reshape(804414)
+
+    ind_valid = np.logical_or(np.logical_and(np.logical_xor(ind_ccat, ind_mcat), np.logical_and(~ind_gcat, ~ind_ecat)),
+                              np.logical_and(np.logical_xor(ind_gcat, ind_ecat), np.logical_and(~ind_ccat, ~ind_mcat)))
+
+    y = rcv1.target[ind_valid,].toarray()[:,[33,59,70,102]].argmax(axis=1)
+
+    ind_word = np.argsort(np.bincount(rcv1.data[ind_valid,].nonzero()[1]))[::-1][0:nb_words]
+
+    X = rcv1.data[ind_valid,][:,ind_word].toarray()
+
+    X_train = X[:int(len(X) * (1 - test_split))]
+    y_train = y[:int(len(X) * (1 - test_split))]
+
+    X_test = X[int(len(X) * (1 - test_split)):]
+    y_test = y[int(len(X) * (1 - test_split)):]
+
+    input_shape = (nb_words,)
+
+    return (X_train, y_train), (X_test, y_test), input_shape
