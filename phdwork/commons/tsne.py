@@ -85,7 +85,7 @@ def x2p(X = Math.array([]), tol = 1e-5, perplexity = 30.0, verbose=0):
     return P;
 
 
-def pca(X = Math.array([]), no_dims = 50, , verbose=0):
+def pca(X = Math.array([]), no_dims = 50, verbose=0):
     """Runs PCA on the NxD array X in order to reduce its dimensionality to no_dims dimensions."""
     if verbose:
         print "Preprocessing the data using PCA..."
@@ -96,7 +96,7 @@ def pca(X = Math.array([]), no_dims = 50, , verbose=0):
     return Y;
 
 
-def tsne(X = Math.array([]), no_dims = 2, initial_dims = 50, perplexity = 30.0, , verbose=0):
+def tsne(X = Math.array([]), no_dims = 2, initial_dims = 50, perplexity = 30.0, verbose=0):
     """Runs t-SNE on the dataset in the NxD array X to reduce its dimensionality to no_dims dimensions.
     The syntaxis of the function is Y = tsne.tsne(X, no_dims, perplexity), where X is an NxD NumPy array."""
 
