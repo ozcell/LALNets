@@ -25,7 +25,7 @@ def Hbeta(D = Math.array([]), beta = 1.0):
     return H, P;
 
 
-def x2p(X = Math.array([]), tol = 1e-5, perplexity = 30.0):
+def x2p(X = Math.array([]), tol = 1e-5, perplexity = 30.0, verbose=0):
     """Performs a binary search to get P-values in such a way that each conditional Gaussian has the same perplexity."""
 
     # Initialize some variables
@@ -85,7 +85,7 @@ def x2p(X = Math.array([]), tol = 1e-5, perplexity = 30.0):
     return P;
 
 
-def pca(X = Math.array([]), no_dims = 50):
+def pca(X = Math.array([]), no_dims = 50, , verbose=0):
     """Runs PCA on the NxD array X in order to reduce its dimensionality to no_dims dimensions."""
     if verbose:
         print "Preprocessing the data using PCA..."
@@ -96,7 +96,7 @@ def pca(X = Math.array([]), no_dims = 50):
     return Y;
 
 
-def tsne(X = Math.array([]), no_dims = 2, initial_dims = 50, perplexity = 30.0):
+def tsne(X = Math.array([]), no_dims = 2, initial_dims = 50, perplexity = 30.0, , verbose=0):
     """Runs t-SNE on the dataset in the NxD array X to reduce its dimensionality to no_dims dimensions.
     The syntaxis of the function is Y = tsne.tsne(X, no_dims, perplexity), where X is an NxD NumPy array."""
 
@@ -111,7 +111,7 @@ def tsne(X = Math.array([]), no_dims = 2, initial_dims = 50, perplexity = 30.0):
         return -1;
 
     # Initialize variables
-    X = pca(X, initial_dims).real;
+    X = pca(X, initial_dims, verbose).real;
     (n, d) = X.shape;
     max_iter = 1000;
     initial_momentum = 0.5;
@@ -124,7 +124,7 @@ def tsne(X = Math.array([]), no_dims = 2, initial_dims = 50, perplexity = 30.0):
     gains = Math.ones((n, no_dims));
 
     # Compute P-values
-    P = x2p(X, 1e-5, perplexity);
+    P = x2p(X, 1e-5, perplexity, verbose);
     P = P + Math.transpose(P);
     P = P / Math.sum(P);
     P = P * 4;                                    # early exaggeration
