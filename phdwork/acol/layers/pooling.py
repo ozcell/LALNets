@@ -14,7 +14,7 @@ from keras.engine import InputSpec
 from keras.engine import Layer
 
 from keras import activations
-from keras import initializers
+from keras import initializations
 from keras import regularizers
 from keras import constraints
 
