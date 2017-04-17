@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from . import initializations
+from . import initializers
 from . import layers
 from . import models
 from . import regularizers
