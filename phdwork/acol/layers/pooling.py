@@ -14,11 +14,11 @@ from keras.engine import InputSpec
 from keras.engine import Layer
 
 from keras import activations
-from keras import initializations
+from keras import initializers
 from keras import regularizers
 from keras import constraints
 
-from phdwork.acol import initializations
+from phdwork.acol import initializers
 
 class AveragePooling(Layer):
     """Just your regular densely-connected NN layer.

@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division
 import numpy as np
 from keras import backend as K
-from keras.utils.generic_utils import get_from_module
+from keras.utils.generic_utils import get
 
 def identity_vstacked(shape, scale=1, name=None, dim_ordering='th'):
     scale = shape[1]/shape[0]
