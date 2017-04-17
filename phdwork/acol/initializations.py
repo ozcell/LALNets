@@ -52,4 +52,4 @@ def identity_dstacked(shape, scale=1, name=None, dim_ordering='th'):
 
 def get(identifier, **kwargs):
     return get_from_module(identifier, globals(),
-                           'initializers', kwargs=kwargs)
+                           'initialization', kwargs=kwargs)
