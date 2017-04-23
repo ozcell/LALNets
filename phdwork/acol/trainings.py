@@ -217,7 +217,7 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
         #test initial network before starting the training
         history = model.fit_pseudo(X_train, nb_pseudos,
-                                batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=False,
+                                batch_size=batch_size, nb_epoch=1, train=False,
                                 get_pseudos=get_pseudos, test_data=test_data,
                                 train_on_original_only=original_only, verbose=0)
 
@@ -386,7 +386,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
 
         #test initial network before starting the training
         history = model.fit_pseudo((X_train[0], X_train_labeled), nb_pseudos,
-                                batch_size=batch_size, nb_epoch=nb_epoch_per_dpoint, train=False,
+                                batch_size=batch_size, nb_epoch=1, train=False,
                                 get_pseudos=get_pseudos, test_data=test_data,
                                 train_on_original_only=original_only, verbose=0)
 
@@ -521,6 +521,10 @@ def fit_pseudo(self, X, nb_pseudos, batch_size, nb_epoch,
     if verbose:
         progbar = generic_utils.Progbar(nb_epoch)
 
+
+    history_train = np.zeros(2)
+    history_test = np.zeros(2)
+    
     for epoch in range(nb_epoch):
 
         if train:
@@ -531,7 +535,6 @@ def fit_pseudo(self, X, nb_pseudos, batch_size, nb_epoch,
 
         #test on original training set
         count = 0
-        history_train = np.zeros(2)
         for X_batch, Y_batch in pseudo_batch_generator(X, nb_pseudos,
             batch_size, get_pseudos, test_on_original_only):
             history_train += self.test_on_batch(X_batch, Y_batch)
@@ -541,7 +544,6 @@ def fit_pseudo(self, X, nb_pseudos, batch_size, nb_epoch,
         values=[('loss', history_train[0]), ('acc', history_train[1])]
 
         #test on original test set if test_on_test_set is True
-        history_test = np.zeros(2)
         if test_data is not None:
             count = 0
             for X_batch, Y_batch in pseudo_batch_generator(test_data[0],
