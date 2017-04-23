@@ -319,7 +319,10 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
     # y to Y conversion for original dataset
     nb_classes = y_train[1].max() - y_train[1].min() + 1
 
-    nb_epoch_per_dpoint = nb_epoch[0]/nb_dpoints
+    if nb_dpoints:
+        nb_epoch_per_dpoint = nb_epoch[0]/nb_dpoints
+    else:
+        nb_epoch_per_dpoint = 0
 
     metrics = initialize_metrics()
 
