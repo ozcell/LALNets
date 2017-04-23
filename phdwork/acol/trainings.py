@@ -521,11 +521,10 @@ def fit_pseudo(self, X, nb_pseudos, batch_size, nb_epoch,
     if verbose:
         progbar = generic_utils.Progbar(nb_epoch)
 
-
-    history_train = np.zeros(2)
-    history_test = np.zeros(2)
-    
     for epoch in range(nb_epoch):
+
+        history_train = np.zeros(2)
+        history_test = np.zeros(2)
 
         if train:
             #train model
