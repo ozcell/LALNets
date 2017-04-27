@@ -463,7 +463,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
 
             history = model_pre.fit_pseudo_supervised(X_train_labeled, y_train_labeled,
                                 nb_classes, nb_pseudos,
-                                batch_size=batch_size, nb_epoch=nb_epoch, train=True,
+                                batch_size=sum(batch_size), nb_epoch=1, train=True,
                                 get_pseudos=get_pseudos, test_data=None,
                                 train_on_original_only=False, verbose=verbose)
 
