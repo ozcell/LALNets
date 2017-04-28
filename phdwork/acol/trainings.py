@@ -349,7 +349,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         _model_params = get_model_pre_params(model_params, nb_pseudos, nb_classes)
 
         #get pre-trained model
-        model_pre, X_train_labeled, y_train_labeled = train_pre(nb_pseudos,
+        model_pre, X_train_labeled = train_pre(nb_pseudos,
                                                define_model, _model_params, optimizer[1],
                                                X_train[1], y_train[1], nb_labeled,
                                                get_pseudos, nb_epoch[1], sum(batch_size),
@@ -453,64 +453,6 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
                         dpoint=dpoint, nb_epoch_per_dpoint=nb_epoch_per_dpoint,
                         acol_metrics=acol_metrics, cl_acc=[cl_acc, cl_vacc])
 
-
-            #transfer weights of unsupervised training
-            weights_model = []
-            weights_model.extend(model.get_weights()[0:-1])
-            weights_model.append(model_pre.get_weights()[-1])
-
-            model_pre.set_weights(weights_model)
-
-            history = model_pre.fit_pseudo_supervised(X_train_labeled, y_train_labeled,
-                                nb_classes, nb_pseudos,
-                                batch_size=batch_size, nb_epoch=nb_epoch, train=True,
-                                get_pseudos=get_pseudos, test_data=None,
-                                train_on_original_only=False, verbose=verbose)
-
-            #transfer weights of supervised training
-            weights_model_pre = []
-            weights_model_pre.extend(model_pre.get_weights()[0:-1])
-            weights_model_pre.append(model.get_weights()[-1])
-
-            model.set_weights(weights_model_pre)
-
-            #transfer weights to truncated mirror of the model
-            model_truncated.set_weights(model.get_weights())
-
-            #get ACOL metrics, affinity, balance, coactivity and regularization cost
-            acol_metrics = cumulate_metrics(X_train[0], get_metrics, sum(batch_size))
-
-            #calculate clustering accuracy
-            if y_train[0] is not None:
-                cl_acc = model_truncated.evaluate_clustering(X_train[0], y_train[0],
-                                nb_all_clusters, sum(batch_size), verbose=verbose)
-            else:
-                cl_acc = 0.
-            if y_test is not None:
-                cl_vacc = model_truncated.evaluate_clustering(X_test, y_test,
-                                nb_all_clusters, sum(batch_size), verbose=verbose)
-            else:
-                cl_vacc = 0.
-
-            #ACOL c3 update
-            if update_c3 is not None:
-                new_c3 = update_c3(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose=verbose)
-                model.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
-                model_truncated.get_layer("L-1").activity_regularizer.c3.set_value(new_c3)
-
-            if set_original_only is not None:
-                original_only = set_original_only(acol_metrics, (dpoint+1)*nb_epoch_per_dpoint, verbose=verbose)
-
-            #update experiment metrics
-            update_metrics(metrics, history, [cl_acc, cl_vacc], acol_metrics)
-
-            #print stats
-            print_stats(verbose, 2, test_data=test_data, rerun=rerun,
-                        dpoint=dpoint, nb_epoch_per_dpoint=nb_epoch_per_dpoint,
-                        acol_metrics=acol_metrics, cl_acc=[cl_acc, cl_vacc])
-
-
-
         acti_train[:,:,rerun] = model_truncated.predict(X_train[0], batch_size=sum(batch_size))
         if X_test is not None:
             acti_test[:,:,rerun] = model_truncated.predict(X_test, batch_size=sum(batch_size))
@@ -569,7 +511,7 @@ def train_pre(nb_pseudos,
         #print stats
         print_stats(verbose, 5, acol_metrics=acol_metrics)
 
-        return model, X_train_labeled, y_train_labeled
+        return model, X_train_labeled
 
 
 def fit_pseudo(self, X, nb_pseudos, batch_size, nb_epoch,
