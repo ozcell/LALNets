@@ -29,7 +29,7 @@ def load_mnist(order='th'):
     return (X_train, y_train), (X_test, y_test), input_shape
 
 
-def load_svhn(order='th', path=None):
+def load_svhn(order='th', path=None, extra=False):
 
     # input image dimensions
     img_rows, img_cols, img_channels,  = 32, 32, 3
@@ -82,7 +82,32 @@ def load_svhn(order='th', path=None):
 
     del test_data
 
-    return (X_train, y_train), (X_test, y_test), input_shape
+    if extra:
+        if path is None:
+            extra_data = sio.loadmat('/home/ozsel/Jupyter/datasets/svhn/extra_32x32.mat')
+        else:
+            extra_data = sio.loadmat(path + 'extra_32x32.mat')
+
+        # access to the dict
+        X_extra = extra_data['X']
+        if order == 'tf':
+            X_extra = X_extra.reshape(img_channels*img_rows*img_cols, X_extra.shape[-1]).T
+            X_extra = X_extra.reshape(len(X_extra), input_shape[0], input_shape[1], input_shape[2])
+        elif order == 'th':
+            X_extra = X_extra.T.swapaxes(2,3)
+        X_extra = X_extra.astype('float32')
+        X_extra /= 255
+
+        y_extra= extra_data['y']
+        y_extra = y_extra.reshape(y_extra.shape[0])
+        y_extra = y_extra%nb_classes
+
+        del extra_data
+    else:
+        X_extra = None
+        y_extra = None
+
+    return (X_train, y_train), (X_test, y_test), input_shape, (X_extra, y_extra)
 
 
 def load_norb(order='th', path=None, use_pairs=False):
