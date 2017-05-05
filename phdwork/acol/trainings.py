@@ -307,6 +307,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
                          X_test, y_test,
                          get_pseudos,
                          nb_reruns, nb_epoch, nb_dpoints, batch_size,
+                         validation_set_size=None,
                          test_on_test_set=True, update_c3=None,
                          set_original_only=None, return_model=False,
                          save_after_each_rerun=None, verbose=1, model_in=None):
@@ -340,6 +341,12 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
     for rerun in range(nb_reruns):
 
         rerun_start = time.time()
+
+        #dummy validatation
+        if validation_set_size is None:
+            validation_set_ind = range(len(X_train[0]))
+        else:
+            validation_set_ind = np.random.permuation(len(X_train[0]))[0:validation_set_size]
 
         #extend each list for each rerun
         for item in metrics.itervalues():
@@ -395,11 +402,13 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
 
         #calculate clustering accuracy
         if y_train[0] is not None:
-            cl_acc = model_truncated.evaluate_clustering(X_train[0], y_train[0], nb_all_clusters, sum(batch_size), verbose=verbose)
+            cl_acc = model_truncated.evaluate_clustering(X_train[0][validation_set_ind,],
+                    y_train[0][validation_set_ind], nb_all_clusters, sum(batch_size), verbose=verbose)
         else:
             cl_acc = 0.
         if y_test is not None:
-            cl_vacc = model_truncated.evaluate_clustering(X_test, y_test, nb_all_clusters, sum(batch_size), verbose=verbose)
+            cl_vacc = model_truncated.evaluate_clustering(X_test,
+                    y_test, nb_all_clusters, sum(batch_size), verbose=verbose)
         else:
             cl_vacc = 0.
 
@@ -426,8 +435,8 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
 
             #calculate clustering accuracy
             if y_train[0] is not None:
-                cl_acc = model_truncated.evaluate_clustering(X_train[0], y_train[0],
-                                nb_all_clusters, sum(batch_size), verbose=verbose)
+                cl_acc = model_truncated.evaluate_clustering(X_train[0][validation_set_ind,], 
+                    y_train[0][validation_set_ind], nb_all_clusters, sum(batch_size), verbose=verbose)
             else:
                 cl_acc = 0.
             if y_test is not None:
