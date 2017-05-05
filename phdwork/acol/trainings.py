@@ -346,7 +346,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
         if validation_set_size is None:
             validation_set_ind = range(len(X_train[0]))
         else:
-            validation_set_ind = np.random.permuation(len(X_train[0]))[0:validation_set_size]
+            validation_set_ind = np.random.permutation(len(X_train[0]))[0:validation_set_size]
 
         #extend each list for each rerun
         for item in metrics.itervalues():
@@ -435,7 +435,7 @@ def train_semisupervised(nb_pseudos, nb_clusters_per_pseudo,
 
             #calculate clustering accuracy
             if y_train[0] is not None:
-                cl_acc = model_truncated.evaluate_clustering(X_train[0][validation_set_ind,], 
+                cl_acc = model_truncated.evaluate_clustering(X_train[0][validation_set_ind,],
                     y_train[0][validation_set_ind], nb_all_clusters, sum(batch_size), verbose=verbose)
             else:
                 cl_acc = 0.
