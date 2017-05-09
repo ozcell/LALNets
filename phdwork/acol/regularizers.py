@@ -5,7 +5,7 @@ from keras.utils.generic_utils import get_from_module
 import warnings
 
 Tr = K.theano.tensor.nlinalg.trace
-Diag = K.theano.tensor.nlinalg.ExtractDiag()
+Diag = K.theano.tensor.nlinalg.diag
 
 class AcolRegularizer(Regularizer):
     """Regularizer for ACOL.
