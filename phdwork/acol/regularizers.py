@@ -5,7 +5,7 @@ from keras.utils.generic_utils import get_from_module
 import warnings
 
 Tr = K.theano.tensor.nlinalg.trace
-Diag = K.theano.tensor.nlinalg.diag
+Diag = K.theano.tensor.nlinalg.ExtractDiag()
 
 class AcolRegularizer(Regularizer):
     """Regularizer for ACOL.
@@ -32,7 +32,7 @@ class AcolRegularizer(Regularizer):
         #v = K.sum(Z_bar, axis=0).reshape((1,n))
 
         U = K.dot(Z_bar.T, Z_bar)
-        v = Diag(U)
+        v = Diag(U).reshape((1,n))
         V = K.dot(v.T, v)
 
         affinity = (K.sum(U) - Tr(U))/((n-1)*Tr(U))
