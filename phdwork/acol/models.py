@@ -84,7 +84,7 @@ def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden
     return model
 
 
-def define_mlp(input_shape, nb_classes, mlp_params=(3, 2048, 0., 0.5, 2.),
+def define_mlp(input_shape, nb_classes, mlp_params=(3, 2048, 0., 0.5, 2.), foo=None, foo2=None,
                acol_params=(5, 0, 1, 1, 0, 0.000001, 'average', False),
                init='identity_vstacked', null_node= False, truncated = False):
 
