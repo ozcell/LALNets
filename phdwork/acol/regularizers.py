@@ -46,8 +46,8 @@ class AcolRegularizer(Regularizer):
         if self.c3:
             regularization += self.c3 * coactivity
         if self.c4:
-            #regularization += K.sum(self.c4 * K.square(Z))
-            regularization += K.sum(self.c4 * K.square(Z_bar))
+            regularization += K.sum(self.c4 * K.square(Z))
+            #regularization += K.sum(self.c4 * K.square(Z_bar))
 
         self.affinity = affinity
         self.balance = balance
