@@ -84,14 +84,15 @@ def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden
     return model
 
 
-def define_mlp(input_shape, nb_classes, mlp_params=(3, 2048, 0., 0.5, 2.), foo=None, foo2=None,
+def define_mlp(input_shape, nb_classes, mlp_params=(3, 2048), other_params=(0., 0.5, 2.), hidden_drop=True,
                acol_params=(5, 0, 1, 1, 0, 0.000001, 'average', False),
                init='identity_vstacked', null_node= False, truncated = False):
 
 
-    nb_layers, nb_nodes, p_i, p_hl, m_n = mlp_params
+    nb_layers, nb_nodes  = mlp_params
+    p_i, p_hl, m_n = other_params
     K, p, c1, c2, c3, c4, pooling, trainable = acol_params
-    if m_n:
+    if hidden_drop and m_n:
         W_constraint = maxnorm(m_n)
     else:
         W_constraint = None
@@ -102,13 +103,14 @@ def define_mlp(input_shape, nb_classes, mlp_params=(3, 2048, 0., 0.5, 2.), foo=N
         AcolPooling = MaxPooling
 
     model = Sequential()
-    if p_i:
+    if hidden_drop and p_i:
         model.add(Dropout(p_i, input_shape=input_shape))
     else:
         model.add(InputLayer(input_shape=input_shape))
     for layer in range(nb_layers):
         model.add(Dense(nb_nodes, activation='relu', W_constraint=W_constraint))
-        model.add(Dropout(p_hl))
+        if hidden_drop and p_hl:
+            model.add(Dropout(p_hl))
 
     model.add(Dense(nb_classes*K, activity_regularizer=activity_acol(c1, c2, c3, c4), name='L-1'))
     model.add(Dropout(p))
