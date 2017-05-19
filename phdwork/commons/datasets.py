@@ -110,15 +110,12 @@ def load_svhn(order='th', path=None, extra=False):
     return (X_train, y_train), (X_test, y_test), input_shape, (X_extra, y_extra)
 
 
-def load_norb(order='th', path=None, use_pairs=False):
+def load_norb(path=None):
 
     # input image dimensions
-    img_rows, img_cols, img_channels,  = 96, 96, 1
+    img_rows, img_cols, img_channels,  = 96, 96, 2
 
-    if order == 'tf':
-        input_shape=(img_rows, img_cols, img_channels)
-    elif order == 'th':
-        input_shape=(img_channels, img_rows, img_cols)
+    input_shape=(img_channels, img_rows, img_cols)
 
     if path is None:
         X_train = np.load('/home/ozsel/Jupyter/datasets/norb/X_train.npy')
@@ -127,18 +124,8 @@ def load_norb(order='th', path=None, use_pairs=False):
         X_train = np.load(path + 'X_train.npy')
         y_train = np.load(path + 'y_train.npy')
 
-    if use_pairs:
-        X_train = X_train.reshape(len(X_train)*2, input_shape[0], input_shape[1], input_shape[2])
-    else:
-        X_train = X_train[:,0,]
-        X_train = X_train.reshape(len(X_train), input_shape[0], input_shape[1], input_shape[2])
-
     X_train = X_train.astype('float32')
-    X_train /= 255
-
-
-    if use_pairs:
-        y_train = np.stack((y_train, y_train),axis=-1).reshape(len(y_train)*2,)
+    #X_train /= 255
 
     if path is None:
         X_test = np.load('/home/ozsel/Jupyter/datasets/norb/X_test.npy')
@@ -147,17 +134,8 @@ def load_norb(order='th', path=None, use_pairs=False):
         X_test = np.load(path + 'X_test.npy')
         y_test = np.load(path + 'y_test.npy')
 
-    if use_pairs:
-        X_test = X_test.reshape(len(X_test)*2, input_shape[0], input_shape[1], input_shape[2])
-    else:
-        X_test = X_test[:,0,]
-        X_test = X_test.reshape(len(X_test), input_shape[0], input_shape[1], input_shape[2])
     X_test = X_test.astype('float32')
-    X_test /= 255
-
-
-    if use_pairs:
-        y_test = np.stack((y_test, y_test),axis=-1).reshape(len(y_test)*2,)
+    #X_test /= 255
 
     return (X_train, y_train), (X_test, y_test), input_shape
 

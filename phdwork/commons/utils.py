@@ -133,7 +133,7 @@ def choose_samples(X, y, nb_classes, nb_samples_per_class, verbose=1):
 
     return X[ind_chosen, ], y[ind_chosen]
 
-def feature_wise_normalization(X):
+def sample_wise_center_norm(X):
 
     if len(X.shape) == 2:
         X -= X.mean(axis=(1), keepdims=True)
