@@ -83,9 +83,9 @@ class AcolRegularizerNull(Regularizer):
     def __call__(self, x):
         regularization = 0
 
-        self.affinity = K.variable(0.)
-        self.balance = K.variable(0.)
-        self.coactivity = K.variable(0.)
+        self.affinity = 0.
+        self.balance = 0.
+        self.coactivity = 0.
         self.reg = regularization
 
         return regularization
