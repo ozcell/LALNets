@@ -82,11 +82,14 @@ class AcolRegularizerNull(Regularizer):
 
     def __call__(self, x):
         regularization = 0
+        affinity = 0.
+        balance = 0.
+        coactivity = 0.
 
-        self.affinity = regularization
-        self.balance = regularization
-        self.coactivity = regularization
-        self.reg = regularization
+        self.affinity = K.cast_to_floatx(K.variable(affinity).eval())
+        self.balance = K.cast_to_floatx(K.variable(balance).eval())
+        self.coactivity = K.cast_to_floatx(K.variable(coactivity).eval())
+        self.reg = K.cast_to_floatx(K.variable(regularization).eval())
 
         return regularization
 
