@@ -6,6 +6,7 @@ import warnings
 
 Tr = K.theano.tensor.nlinalg.trace
 Diag = K.theano.tensor.nlinalg.ExtractDiag()
+Range = K.theano.tensor.ptp
 
 class AcolRegularizer(Regularizer):
     """Regularizer for ACOL.
@@ -83,10 +84,11 @@ class AcolRegularizerNull(Regularizer):
     def __call__(self, x):
         regularization = 0
         Z = x
+        Z_bar = Z * K.cast(Z>0., K.floatx())
 
         affinity = self.c1*K.sum(self.c4 * K.square(Z))
         balance = self.c2*K.sum(self.c4 * K.square(Z))
-        coactivity = self.c3*K.sum(self.c4 * K.square(Z))
+        coactivity = K.sum(Range(Z_bar, axis=0))
 
         if self.c1:
             regularization += self.c1 * affinity
@@ -117,9 +119,8 @@ class AcolRegularizerNull(Regularizer):
 def activity_acol(c1=1., c2=1., c3=0., c4=0.000001,):
     return AcolRegularizer(c1=c1, c2=c2, c3=c3, c4=c4)
 
-def activity_acol_null():
-    return AcolRegularizerNull(c1=0., c2=0., c3=0., c4=0.)
-
+def activity_acol_null(c3=0.0001):
+    return AcolRegularizerNull(c1=0., c2=0., c3=c3, c4=0.)
 
 def get(identifier, kwargs=None):
     return get_from_module(identifier, globals(), 'regularizer',
