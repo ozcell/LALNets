@@ -63,13 +63,48 @@ class AcolRegularizer(Regularizer):
                 'c3': K.cast_to_floatx(self.c3.eval()),
                 'c4': K.cast_to_floatx(self.c4.eval())}
 
+
+class AcolRegularizerNull(Regularizer):
+    """Null regularizer for ACOL.
+
+    # Arguments
+        c1: Float; affinity factor.
+        c2: Float; balance factor.
+        c3: Float; coactivity factor.
+        c4: Float; L2 regularization factor.
+    """
+
+    def __init__(self, c1=0., c2=0., c3=0., c4=0.):
+        self.c1 = K.variable(c1)
+        self.c2 = K.variable(c2)
+        self.c3 = K.variable(c3)
+        self.c4 = K.variable(c4)
+
+    def __call__(self, x):
+        regularization = 0
+
+        self.affinity = 0.
+        self.balance = 0.
+        self.coactivity = 0.
+        self.reg = regularization
+
+        return regularization
+
+    def get_config(self):
+        return {'name': self.__class__.__name__,
+                'c1': K.cast_to_floatx(self.c1.eval()),
+                'c2': K.cast_to_floatx(self.c2.eval()),
+                'c3': K.cast_to_floatx(self.c3.eval()),
+                'c4': K.cast_to_floatx(self.c4.eval())}
+
+
 # Aliases.
-
-ActivityRegularizer = AcolRegularizer
-
 
 def activity_acol(c1=1., c2=1., c3=0., c4=0.000001,):
     return AcolRegularizer(c1=c1, c2=c2, c3=c3, c4=c4)
+
+def activity_acol_null():
+    return AcolRegularizerNull(c1=0., c2=0., c3=0., c4=0.)
 
 
 def get(identifier, kwargs=None):
