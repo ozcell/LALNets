@@ -176,7 +176,7 @@ def get_similarity_matrix(sample_ids, est, nb_parents, nb_clusters_per_parent, w
 
     sim = np.triu(sim,1).T+np.triu(sim,1)
 
-    for i in range(75):
+    for i in range(nb_samples):
         sim[i,i] = 1
 
     return a, sim
