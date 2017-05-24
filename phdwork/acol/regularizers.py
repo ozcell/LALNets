@@ -82,9 +82,9 @@ class AcolRegularizerNull(Regularizer):
 
     def __call__(self, x):
         regularization = 0
-        affinity = 0
-        balance = 0
-        coactivity = 0
+        affinity = 0.
+        balance = 0.
+        coactivity = 0.
 
         self.affinity = K.variable(affinity)
         self.balance = K.variable(balance)
@@ -108,7 +108,6 @@ def activity_acol(c1=1., c2=1., c3=0., c4=0.000001,):
 
 def activity_acol_null():
     return AcolRegularizerNull(c1=0., c2=0., c3=0., c4=0.)
-
 
 def get(identifier, kwargs=None):
     return get_from_module(identifier, globals(), 'regularizer',
