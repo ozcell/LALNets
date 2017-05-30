@@ -91,7 +91,7 @@ class AcolRegularizerNull(Regularizer):
         Z_bar = Z * K.cast(Z>0., K.floatx())
 
         mask = column_vstacked((n, self.k))
-        n = K.variable(self.k)
+        n = self.k
         Z_bar = K.dot(Z_bar, mask)
 
         U = K.dot(Z_bar.T, Z_bar)
