@@ -86,12 +86,12 @@ class AcolRegularizerNull(Regularizer):
     def __call__(self, x):
         regularization = 0
         Z = x
-        n = K.shape(Z)[1]
+        n = K.cast_to_floatx(K.int_shape(Z)[1])
 
         Z_bar = Z * K.cast(Z>0., K.floatx())
 
         mask = column_vstacked((n, self.k))
-        n = self.k
+        n = K.variable(self.k)
         Z_bar = K.dot(Z_bar, mask)
 
         U = K.dot(Z_bar.T, Z_bar)
