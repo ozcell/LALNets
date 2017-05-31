@@ -1,7 +1,7 @@
 from __future__ import absolute_import
+import numpy as np
 from keras import backend as K
 from keras.regularizers import Regularizer
-from phdwork.acol.initializations import column_vstacked
 from keras.utils.generic_utils import get_from_module
 import warnings
 
