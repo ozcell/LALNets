@@ -8,6 +8,9 @@ import warnings
 Tr = K.theano.tensor.nlinalg.trace
 Diag = K.theano.tensor.nlinalg.ExtractDiag()
 Range = K.theano.tensor.ptp
+Tensordot = K.theano.tensor.tensordot
+Scan = K.theano.scan
+Arange = K.theano.tensor.arange
 
 class AcolRegularizer(Regularizer):
     """Regularizer for ACOL.
@@ -87,16 +90,16 @@ class AcolRegularizerNull(Regularizer):
         regularization = 0
         Z = x
         n = K.shape(Z)[1]
-        mask = identity_hvstacked((K.int_shape(Z)[1], self.k))
 
-        Z_bar = Z * K.cast(Z>0., K.floatx())
-        U = K.dot(Z_bar.T, Z_bar) * mask
-        v = Diag(U).reshape((1,n))
-        V = K.dot(v.T, v) * mask
+        Z_bar = K.reshape(Z * K.cast(Z>0., K.floatx()), (-1, self.k, n//self.k))
+        U = Tensordot(Z_bar, Z_bar, axes=[0,0])
 
-        affinity = (K.sum(U) - Tr(U))/((self.k-1)*Tr(U))
-        balance = (K.sum(V) - Tr(V))/((self.k-1)*Tr(V))
-        coactivity = K.sum(U) - Tr(U)
+        partials, _  = Scan(calculate_partial_affinity_balance,
+                       sequences=[Arange(U.shape[1])], non_sequences = [U, self.k])
+
+        affinity = K.means(partials[0])
+        balance = K.means(partials[1])
+        coactivity = K.means(partials[1])
 
         if self.c1:
             regularization += self.c1 * affinity
@@ -132,6 +135,14 @@ def identity_hvstacked(shape, scale=1, name=None, dim_ordering='th'):
     for i in range(1, shape[1]):
         b = np.concatenate((b, a),axis=0)
     return K.variable(b, name=name)
+
+def calculate_partial_affinity_balance(i, U, k):
+    U_partial = U[:,i,:,i]
+    v = Diag(U_partial).reshape((1,k))
+    V = K.dot(v.T, v)
+    affinity = (K.sum(U_partial) - Tr(U_partial))/((k-1)*Tr(U_partial))
+    balance = (K.sum(V) - Tr(V))/((k-1)*Tr(V))
+    return affinity, balance
 
 # Aliases.
 
