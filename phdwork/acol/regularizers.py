@@ -87,12 +87,10 @@ class AcolRegularizerNull(Regularizer):
         regularization = 0
         Z = x
         n = K.shape(Z)[1]
+        mask = identity_hvstacked((K.int_shape(Z)[1], self.k))
 
         Z_bar = Z * K.cast(Z>0., K.floatx())
-
-        U = K.dot(Z_bar.T, Z_bar)
-        mask = identity_hvstacked((K.int_shape(U)[0], self.k))
-        U = U * mask
+        U = K.dot(Z_bar.T, Z_bar) * mask
         v = Diag(U).reshape((1,n))
         V = K.dot(v.T, v)
 
