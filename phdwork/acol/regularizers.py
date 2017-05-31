@@ -92,10 +92,10 @@ class AcolRegularizerNull(Regularizer):
         Z_bar = Z * K.cast(Z>0., K.floatx())
         U = K.dot(Z_bar.T, Z_bar) * mask
         v = Diag(U).reshape((1,n))
-        V = K.dot(v.T, v)
+        V = K.dot(v.T, v) * mask
 
         affinity = (K.sum(U) - Tr(U))/((self.k-1)*Tr(U))
-        balance = (K.sum(V) - Tr(V))/((n-1)*Tr(V))
+        balance = (K.sum(V) - Tr(V))/((self.k-1)*Tr(V))
         coactivity = K.sum(U) - Tr(U)
 
         if self.c1:
