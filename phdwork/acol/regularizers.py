@@ -86,19 +86,17 @@ class AcolRegularizerNull(Regularizer):
     def __call__(self, x):
         regularization = 0
         Z = x
-        n = K.cast_to_floatx(K.int_shape(Z)[1])
+        n = K.shape(Z)[1]
 
         Z_bar = Z * K.cast(Z>0., K.floatx())
 
-        mask = column_vstacked((n, self.k))
-        n = self.k
-        Z_bar = K.dot(Z_bar, mask)
-
         U = K.dot(Z_bar.T, Z_bar)
+        mask = identity_hvstacked((K.int_shape(U)[0], self.k))
+        U = U * mask
         v = Diag(U).reshape((1,n))
         V = K.dot(v.T, v)
 
-        affinity = (K.sum(U) - Tr(U))/((n-1)*Tr(U))
+        affinity = (K.sum(U) - Tr(U))/((self.k-1)*Tr(U))
         balance = (K.sum(V) - Tr(V))/((n-1)*Tr(V))
         coactivity = K.sum(U) - Tr(U)
 
@@ -126,6 +124,16 @@ class AcolRegularizerNull(Regularizer):
                 'c3': K.cast_to_floatx(self.c3.eval()),
                 'c4': K.cast_to_floatx(self.c4.eval())}
 
+
+def identity_hvstacked(shape, scale=1, name=None, dim_ordering='th'):
+    scale = shape[1]/float(shape[0])
+    a = np.identity(int(1/scale))
+    for i in range(1, shape[1]):
+        a = np.concatenate((a, np.identity(int(1/scale))),axis=1)
+    b = np.copy(a)
+    for i in range(1, shape[1]):
+        b = np.concatenate((b, a),axis=0)
+    return K.variable(b, name=name)
 
 # Aliases.
 
