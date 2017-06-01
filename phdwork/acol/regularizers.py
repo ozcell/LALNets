@@ -111,7 +111,7 @@ class AcolRegularizerNull(Regularizer):
         partials, _  = Scan(calculate_partial_affinity_balance,
                        sequences=[Arange(U.shape[1])], non_sequences = [U, self.k])
 
-        #affinity = K.mean(partials[0])
+        affinity = K.mean(partials[0])
         balance = K.mean(partials[1])
         #coactivity = K.mean(partials[1])
 
