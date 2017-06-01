@@ -34,10 +34,10 @@ class AcolRegularizer(Regularizer):
         n = K.shape(Z)[1]
 
         Z_bar = Z * K.cast(x>0., K.floatx())
-        #v = K.sum(Z_bar, axis=0).reshape((1,n))
+        v = K.sum(Z_bar, axis=0).reshape((1,n))
 
         U = K.dot(Z_bar.T, Z_bar)
-        v = Diag(U).reshape((1,n))
+        #v = Diag(U).reshape((1,n))
         V = K.dot(v.T, v)
 
         affinity = (K.sum(U) - Tr(U))/((n-1)*Tr(U))
@@ -94,7 +94,7 @@ class AcolRegularizerNull(Regularizer):
         Z_bar = K.reshape(Z * K.cast(Z>0., K.floatx()), (-1, self.k, n//self.k))
         U = Tensordot(Z_bar, Z_bar, axes=[0,0])
 
-        Z_bar_old = Z * K.cast(x>0., K.floatx())
+        Z_bar_old = Z * K.cast(Z>0., K.floatx())
         U_old = K.dot(Z_bar_old.T, Z_bar_old)
         v = K.sum(Z_bar_old, axis=0).reshape((1,n))
         V = K.dot(v.T, v)
