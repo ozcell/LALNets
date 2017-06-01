@@ -34,10 +34,10 @@ class AcolRegularizer(Regularizer):
         n = K.shape(Z)[1]
 
         Z_bar = Z * K.cast(x>0., K.floatx())
-        v = K.sum(Z_bar, axis=0).reshape((1,n))
+        #v = K.sum(Z_bar, axis=0).reshape((1,n))
 
         U = K.dot(Z_bar.T, Z_bar)
-        #v = Diag(U).reshape((1,n))
+        v = Diag(U).reshape((1,n))
         V = K.dot(v.T, v)
 
         affinity = (K.sum(U) - Tr(U))/((n-1)*Tr(U))
@@ -138,7 +138,8 @@ def identity_hvstacked(shape, scale=1, name=None, dim_ordering='th'):
 
 def calculate_partial_affinity_balance(i, U, k):
     U_partial = U[:,i,:,i]
-    v = Diag(U_partial).reshape((1,k))
+    v = K.sum(U_partial, axis=0).reshape((1,k))
+    #v = Diag(U_partial).reshape((1,k))
     V = K.dot(v.T, v)
     affinity = (K.sum(U_partial) - Tr(U_partial))/((k-1)*Tr(U_partial))
     balance = (K.sum(V) - Tr(V))/((k-1)*Tr(V))
