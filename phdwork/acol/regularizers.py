@@ -91,8 +91,8 @@ class AcolRegularizerNull(Regularizer):
         Z = x
         n = K.shape(Z)[1]
 
-        #Z_bar = K.reshape(Z * K.cast(Z>0., K.floatx()), (-1, self.k, n//self.k))
-        #U = Tensordot(Z_bar, Z_bar, axes=[0,0])
+        Z_bar = K.reshape(Z * K.cast(Z>0., K.floatx()), (-1, self.k, n//self.k))
+        U = Tensordot(Z_bar, Z_bar, axes=[0,0])
 
         Z_bar = Z * K.cast(x>0., K.floatx())
         v = K.sum(Z_bar, axis=0).reshape((1,n))
@@ -105,10 +105,13 @@ class AcolRegularizerNull(Regularizer):
         balance = (K.sum(V) - Tr(V))/((n-1)*Tr(V))
         coactivity = K.sum(U) - Tr(U)
 
-        #partials, _  = Scan(calculate_partial_affinity_balance,
-        #               sequences=[Arange(U.shape[1])], non_sequences = [U, self.k])
+        Z_bar = K.reshape(Z * K.cast(Z>0., K.floatx()), (-1, self.k, n//self.k))
+        U = Tensordot(Z_bar, Z_bar, axes=[0,0])
 
-        #affinity = K.mean(partials[0])
+        partials, _  = Scan(calculate_partial_affinity_balance,
+                       sequences=[Arange(U.shape[1])], non_sequences = [U, self.k])
+
+        affinity = K.mean(partials[0])
         #balance = K.mean(partials[1])
         #coactivity = K.mean(partials[1])
 
