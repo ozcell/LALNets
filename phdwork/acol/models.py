@@ -70,7 +70,7 @@ def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden
         model.add(Dense(4096, activation='relu'))
     model.add(Dropout(0.5)) if hidden_drop else model.add(Dropout(0.))
 
-    if not p:
+    if p:
         model.add(Dense(nb_classes*K, activity_regularizer=activity_acol_null(c1, c2, c3, c4, K), name='L-1'))
     else:
         model.add(Dense(nb_classes*K, activity_regularizer=activity_acol(c1, c2, c3, c4), name='L-1'))
@@ -115,7 +115,7 @@ def define_mlp(input_shape, nb_classes, mlp_params=(3, 2048), other_params=(0., 
         if hidden_drop and p_hl:
             model.add(Dropout(p_hl))
 
-    if not p:
+    if p:
         model.add(Dense(nb_classes*K, activity_regularizer=activity_acol_null(c1, c2, c3, c4, K), name='L-1'))
     else:
         model.add(Dense(nb_classes*K, activity_regularizer=activity_acol(c1, c2, c3, c4), name='L-1'))
