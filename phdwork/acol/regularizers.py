@@ -93,13 +93,16 @@ class AcolRegularizerNull(Regularizer):
 
         Z_bar = K.reshape(Z * K.cast(Z>0., K.floatx()), (-1, self.k, n//self.k))
         U = Tensordot(Z_bar, Z_bar, axes=[0,0])
+        v = K.sum(Z_bar.reshape((-1, n)), axis=0).reshape((1,n))
+        V = K.dot(v.T, v)
 
         partials, _  = Scan(calculate_partial_affinity_balance,
                        sequences=[Arange(U.shape[1])], non_sequences = [U, self.k])
 
         affinity = K.mean(partials[0])
-        balance = K.mean(partials[1])
+        #balance = K.mean(partials[1])
         coactivity = K.mean(partials[1])
+        balance = (K.sum(V) - Tr(V))/((n-1)*Tr(V))
 
         if self.c1:
             regularization += self.c1 * affinity
@@ -138,8 +141,8 @@ def identity_hvstacked(shape, scale=1, name=None, dim_ordering='th'):
 
 def calculate_partial_affinity_balance(i, U, k):
     U_partial = U[:,i,:,i]
-    v = K.sum(U_partial, axis=0).reshape((1,k))
-    #v = Diag(U_partial).reshape((1,k))
+    #v = K.sum(U_partial, axis=0).reshape((1,k))
+    v = Diag(U_partial).reshape((1,k))
     V = K.dot(v.T, v)
     affinity = (K.sum(U_partial) - Tr(U_partial))/((k-1)*Tr(U_partial))
     balance = (K.sum(V) - Tr(V))/((k-1)*Tr(V))
