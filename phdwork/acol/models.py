@@ -15,12 +15,12 @@ from phdwork.acol.regularizers import activity_acol, activity_acol_null
 
 
 def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden_drop = True,
-               acol_params=(5, 0, 1, 1, 0, 0.000001, 'average', False),
+               acol_params=(5, 0, 1, 1, 0, 0.000001, 1, 'average', False),
                init='identity_vstacked', null_node= False, truncated = False):
 
     nb_filters, nb_conv, nb_pool = conv_params
 
-    K, p, c1, c2, c3, c4, pooling, trainable = acol_params
+    K, p, c1, c2, c3, c4, balance_type, pooling, trainable = acol_params
 
     if pooling == 'average':
         AcolPooling = AveragePooling
@@ -70,10 +70,10 @@ def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden
         model.add(Dense(4096, activation='relu'))
     model.add(Dropout(0.5)) if hidden_drop else model.add(Dropout(0.))
 
-    if p:
-        model.add(Dense(nb_classes*K, activity_regularizer=activity_acol_null(c1, c2, c3, c4, K), name='L-1'))
+    if balance_type < 3:
+        model.add(Dense(nb_classes*K, activity_regularizer=activity_acol(c1, c2, c3, c4, balance_type), name='L-1'))
     else:
-        model.add(Dense(nb_classes*K, activity_regularizer=activity_acol(c1, c2, c3, c4), name='L-1'))
+        model.add(Dense(nb_classes*K, activity_regularizer=activity_acol_null(c1, c2, c3, c4, K, balance_type), name='L-1'))
     model.add(Dropout(p))
 
     if not truncated:
@@ -88,13 +88,13 @@ def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden
 
 
 def define_mlp(input_shape, nb_classes, mlp_params=(3, 2048), other_params=(0., 0.5, 2.), hidden_drop=True,
-               acol_params=(5, 0, 1, 1, 0, 0.000001, 'average', False),
+               acol_params=(5, 0, 1, 1, 0, 0.000001, 1, 'average', False),
                init='identity_vstacked', null_node= False, truncated = False):
 
 
     nb_layers, nb_nodes  = mlp_params
     p_i, p_hl, m_n = other_params
-    K, p, c1, c2, c3, c4, pooling, trainable = acol_params
+    K, p, c1, c2, c3, c4, balance_type, pooling, trainable = acol_params
     if hidden_drop and m_n:
         W_constraint = maxnorm(m_n)
     else:
@@ -115,10 +115,10 @@ def define_mlp(input_shape, nb_classes, mlp_params=(3, 2048), other_params=(0., 
         if hidden_drop and p_hl:
             model.add(Dropout(p_hl))
 
-    if p:
-        model.add(Dense(nb_classes*K, activity_regularizer=activity_acol_null(c1, c2, c3, c4, K), name='L-1'))
+    if balance_type < 3:
+        model.add(Dense(nb_classes*K, activity_regularizer=activity_acol(c1, c2, c3, c4, balance_type), name='L-1'))
     else:
-        model.add(Dense(nb_classes*K, activity_regularizer=activity_acol(c1, c2, c3, c4), name='L-1'))
+        model.add(Dense(nb_classes*K, activity_regularizer=activity_acol_null(c1, c2, c3, c4, K, balance_type), name='L-1'))
     model.add(Dropout(p))
 
     if not truncated:

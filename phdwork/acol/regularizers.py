@@ -22,11 +22,12 @@ class AcolRegularizer(Regularizer):
         c4: Float; L2 regularization factor.
     """
 
-    def __init__(self, c1=0., c2=0., c3=0., c4=0.):
+    def __init__(self, c1=0., c2=0., c3=0., c4=0., balance_type=1):
         self.c1 = K.variable(c1)
         self.c2 = K.variable(c2)
         self.c3 = K.variable(c3)
         self.c4 = K.variable(c4)
+        self.balance_type = balance_type
 
     def __call__(self, x):
         regularization = 0
@@ -34,15 +35,17 @@ class AcolRegularizer(Regularizer):
         n = K.shape(Z)[1]
 
         Z_bar = Z * K.cast(x>0., K.floatx())
-        #v = K.sum(Z_bar, axis=0).reshape((1,n))
-
         U = K.dot(Z_bar.T, Z_bar)
-        v = Diag(U).reshape((1,n))
+
+        if self.balance_type == 1:
+            v = Diag(U).reshape((1,n))
+        elif self.balance_type == 2:
+            v = K.sum(Z_bar, axis=0).reshape((1,n))
         V = K.dot(v.T, v)
 
         affinity = (K.sum(U) - Tr(U))/((n-1)*Tr(U))
         balance = (K.sum(V) - Tr(V))/((n-1)*Tr(V))
-        coactivity = K.sum(U) - Tr(U)
+        coactivity = 0. #K.sum(U) - Tr(U)
 
         if self.c1:
             regularization += self.c1 * affinity
@@ -79,34 +82,24 @@ class AcolRegularizerNull(Regularizer):
         c4: Float; L2 regularization factor.
     """
 
-    def __init__(self, c1=0., c2=0., c3=0., c4=0., k=1):
+    def __init__(self, c1=0., c2=0., c3=0., c4=0., k=1, balance_type=3):
         self.c1 = K.variable(c1)
         self.c2 = K.variable(c2)
         self.c3 = K.variable(c3)
         self.c4 = K.variable(c4)
         self.k = k
+        self.balance_type = balance_type
 
     def __call__(self, x):
         regularization = 0
         Z = x
         n = K.shape(Z)[1]
 
-        #Z_bar = Z * K.cast(x>0., K.floatx())
-        #v = K.sum(Z_bar, axis=0).reshape((1,n))
-
-        #U = K.dot(Z_bar.T, Z_bar)
-        #v = Diag(U).reshape((1,n))
-        #V = K.dot(v.T, v)
-
-        #affinity = (K.sum(U) - Tr(U))/((n-1)*Tr(U))
-        #balance = (K.sum(V) - Tr(V))/((n-1)*Tr(V))
-        #coactivity = K.sum(U) - Tr(U)
-
         Z_bar = K.reshape(Z * K.cast(Z>0., K.floatx()), (-1, self.k, n//self.k))
         U = Tensordot(Z_bar, Z_bar, axes=[0,0])
 
         partials, _  = Scan(calculate_partial_affinity_balance,
-                       sequences=[Arange(U.shape[1])], non_sequences = [U, self.k])
+                       sequences=[Arange(U.shape[1])], non_sequences = [U, self.k, self.balance_type])
 
         affinity = K.mean(partials[0])
         balance = K.mean(partials[1])
@@ -147,10 +140,12 @@ def identity_hvstacked(shape, scale=1, name=None, dim_ordering='th'):
         b = np.concatenate((b, a),axis=0)
     return K.variable(b, name=name)
 
-def calculate_partial_affinity_balance(i, U, k):
+def calculate_partial_affinity_balance(i, U, k, balance_type):
     U_partial = U[:,i,:,i]
-    #v = K.sum(U_partial, axis=0).reshape((1,k))
-    v = Diag(U_partial).reshape((1,k))
+    if balance_type == 3:
+        v = Diag(U_partial).reshape((1,k))
+    elif balance_type == 4:
+        v = K.sum(U_partial, axis=0).reshape((1,k))
     V = K.dot(v.T, v)
     affinity = (K.sum(U_partial) - Tr(U_partial))/((k-1)*Tr(U_partial))
     balance = (K.sum(V) - Tr(V))/((k-1)*Tr(V))
@@ -158,11 +153,11 @@ def calculate_partial_affinity_balance(i, U, k):
 
 # Aliases.
 
-def activity_acol(c1=1., c2=1., c3=0., c4=0.000001,):
-    return AcolRegularizer(c1=c1, c2=c2, c3=c3, c4=c4)
+def activity_acol(c1=1., c2=1., c3=0., c4=0.000001, balance_type=1):
+    return AcolRegularizer(c1=c1, c2=c2, c3=c3, c4=c4, balance_type=balance_type)
 
-def activity_acol_null(c1=1., c2=1., c3=0., c4=0.000001, k=1):
-    return AcolRegularizerNull(c1=c1, c2=c2, c3=c3, c4=c4, k=k)
+def activity_acol_null(c1=1., c2=1., c3=0., c4=0.000001, k=1, balance_type=3):
+    return AcolRegularizerNull(c1=c1, c2=c2, c3=c3, c4=c4, k=k, balance_type=balance_type)
 
 def get(identifier, kwargs=None):
     return get_from_module(identifier, globals(), 'regularizer',
