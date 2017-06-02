@@ -98,7 +98,7 @@ class AcolRegularizerNull(Regularizer):
         if self.balance_type == 3:
             v = Diag(U).reshape((1, self.k))
         elif self.balance_type == 4:
-            v = K.sum(Z_bar, axis=0).reshape((1, self.k)))
+            v = K.sum(Z_bar, axis=0).reshape((1, self.k))
         V = K.dot(v.T, v)
 
         affinity = (K.sum(U) - Tr(U))/((self.k) - 1) * Tr(U))
