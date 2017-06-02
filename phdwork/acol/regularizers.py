@@ -3,6 +3,7 @@ import numpy as np
 from keras import backend as K
 from keras.regularizers import Regularizer
 from keras.utils.generic_utils import get_from_module
+from phdwork.acol.initializations import column_vstacked
 import warnings
 
 Tr = K.theano.tensor.nlinalg.trace
@@ -38,17 +39,17 @@ class AcolRegularizer(Regularizer):
         U = K.dot(Z_bar.T, Z_bar)
 
         if self.balance_type == 1:
-            v = Diag(U).reshape((1,n))
+            v = Diag(U).reshape((1, n))
         elif self.balance_type == 2:
-            v = K.sum(Z_bar, axis=0).reshape((1,n))
+            v = K.sum(Z_bar, axis=0).reshape((1, n))
         V = K.dot(v.T, v)
 
-        affinity = (K.sum(U) - Tr(U))/((n-1)*Tr(U))
-        balance = (K.sum(V) - Tr(V))/((n-1)*Tr(V))
+        affinity = (K.sum(U) - Tr(U))/((n - 1) * Tr(U))
+        balance = (K.sum(V) - Tr(V))/((n - 1) * Tr(V))
         coactivity = balance #K.sum(U) - Tr(U)
 
         regularization += self.c1 * affinity
-        regularization += self.c2 * (1-balance)
+        regularization += self.c2 * (1 - balance)
         regularization += self.c3 * coactivity
         regularization += K.sum(self.c4 * K.square(Z))
         #regularization += K.sum(self.c4 * K.square(Z_bar))
@@ -89,17 +90,30 @@ class AcolRegularizerNull(Regularizer):
     def __call__(self, x):
         regularization = 0
         Z = x
-        n = K.shape(Z)[1]
+        n = K.int_shape(Z)[1]
+        mask = column_vstacked((n, self.k))
 
-        Z_bar = K.reshape(Z * K.cast(Z>0., K.floatx()), (-1, self.k, n//self.k))
-        U = Tensordot(Z_bar, Z_bar, axes=[0,0])
+        Z_bar = K.dot(Z_bar, mask)
+        U = K.dot(Z_bar.T, Z_bar)
+        if self.balance_type == 3:
+            v = Diag(U).reshape((1, self.k))
+        elif self.balance_type == 4:
+            v = K.sum(Z_bar, axis=0).reshape((1, self.k)))
+        V = K.dot(v.T, v)
 
-        partials, _  = Scan(calculate_partial_affinity_balance,
-                       sequences=[Arange(U.shape[1])], non_sequences = [U, self.k, self.balance_type])
+        affinity = (K.sum(U) - Tr(U))/((self.k) - 1) * Tr(U))
+        balance = (K.sum(V) - Tr(V))/((self.k) - 1) * Tr(V))
+        coactivity = balance #K.sum(U) - Tr(U)
 
-        affinity = K.mean(partials[0])
-        balance = K.mean(partials[1])
-        coactivity = K.mean(partials[1])
+        #Z_bar = K.reshape(Z * K.cast(Z>0., K.floatx()), (-1, self.k, n//self.k))
+        #U = Tensordot(Z_bar, Z_bar, axes=[0,0])
+
+        #partials, _  = Scan(calculate_partial_affinity_balance,
+        #               sequences=[Arange(U.shape[1])], non_sequences = [U, self.k, self.balance_type])
+
+        #affinity = K.mean(partials[0])
+        #balance = K.mean(partials[1])
+        #coactivity = K.mean(partials[1])
 
         regularization += self.c1 * affinity
         regularization += self.c2 * (1-balance)

@@ -4,14 +4,14 @@ from keras import backend as K
 from keras.utils.generic_utils import get_from_module
 
 def identity_vstacked(shape, scale=1, name=None, dim_ordering='th'):
-    scale = shape[1]/shape[0]
+    scale = shape[1]/float(shape[0])
     a = np.identity(shape[1])
     for i in range(1, int(1/scale)):
         a = np.concatenate((a, np.identity(shape[1])),axis=0)
     return K.variable(a, name=name)
 
 def column_vstacked(shape, scale=1, name=None, dim_ordering='th'):
-    scale = shape[1]/shape[0]
+    scale = shape[1]/float(shape[0])
     b = np.zeros((1,shape[1]))
     b[0,0] = 1
     a = np.copy(b)
@@ -25,7 +25,7 @@ def column_vstacked(shape, scale=1, name=None, dim_ordering='th'):
     return K.variable(a, name=name)
 
 def column_vstacked_nullnode(shape, scale=1, name=None, dim_ordering='th'):
-    scale = (shape[1]-1)/shape[0]
+    scale = (shape[1]-1)/float(shape[0])
     b = np.zeros((1,shape[1]))
     b[0,0] = 1
     a = np.copy(b)
@@ -39,7 +39,7 @@ def column_vstacked_nullnode(shape, scale=1, name=None, dim_ordering='th'):
     return K.variable(a, name=name)
 
 def identity_dstacked(shape, scale=1, name=None, dim_ordering='th'):
-    scale = shape[1]/shape[0]
+    scale = shape[1]/float(shape[0])
     a = np.identity(shape[1])
     for i in range(1, int(1/scale)):
         a = np.concatenate((a, np.identity(shape[1])),axis=0)
