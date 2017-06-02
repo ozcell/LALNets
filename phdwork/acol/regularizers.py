@@ -47,15 +47,11 @@ class AcolRegularizer(Regularizer):
         balance = (K.sum(V) - Tr(V))/((n-1)*Tr(V))
         coactivity = balance #K.sum(U) - Tr(U)
 
-        if self.c1.eval():
-            regularization += self.c1 * affinity
-        if self.c2.eval():
-            regularization += self.c2 * (1-balance)
-        if self.c3.eval():
-            regularization += self.c3 * coactivity
-        if self.c4.eval():
-            regularization += K.sum(self.c4 * K.square(Z))
-            #regularization += K.sum(self.c4 * K.square(Z_bar))
+        regularization += self.c1 * affinity
+        regularization += self.c2 * (1-balance)
+        regularization += self.c3 * coactivity
+        regularization += K.sum(self.c4 * K.square(Z))
+        #regularization += K.sum(self.c4 * K.square(Z_bar))
 
         self.affinity = affinity
         self.balance = balance
@@ -105,15 +101,11 @@ class AcolRegularizerNull(Regularizer):
         balance = K.mean(partials[1])
         coactivity = K.mean(partials[1])
 
-        if self.c1.eval():
-            regularization += self.c1 * affinity
-        if self.c2.eval():
-            regularization += self.c2 * (1-balance)
-        if self.c3.eval():
-            regularization += self.c3 * coactivity
-        if self.c4.eval():
-            regularization += K.sum(self.c4 * K.square(Z))
-            #regularization += K.sum(self.c4 * K.square(Z_bar))
+        regularization += self.c1 * affinity
+        regularization += self.c2 * (1-balance)
+        regularization += self.c3 * coactivity
+        regularization += K.sum(self.c4 * K.square(Z))
+        #regularization += K.sum(self.c4 * K.square(Z_bar))
 
         self.affinity = affinity
         self.balance = balance
