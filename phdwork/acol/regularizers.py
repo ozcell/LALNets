@@ -101,8 +101,8 @@ class AcolRegularizerNull(Regularizer):
             v = K.sum(Z_bar, axis=0).reshape((1, self.k))
         V = K.dot(v.T, v)
 
-        affinity = (K.sum(U) - Tr(U))/((self.k) - 1) * Tr(U))
-        balance = (K.sum(V) - Tr(V))/((self.k) - 1) * Tr(V))
+        affinity = (K.sum(U) - Tr(U))/((self.k - 1) * Tr(U))
+        balance = (K.sum(V) - Tr(V))/((self.k - 1) * Tr(V))
         coactivity = balance #K.sum(U) - Tr(U)
 
         #Z_bar = K.reshape(Z * K.cast(Z>0., K.floatx()), (-1, self.k, n//self.k))
