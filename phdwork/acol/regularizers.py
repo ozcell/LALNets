@@ -47,13 +47,13 @@ class AcolRegularizer(Regularizer):
         balance = (K.sum(V) - Tr(V))/((n-1)*Tr(V))
         coactivity = balance #K.sum(U) - Tr(U)
 
-        if self.c1:
+        if self.c1.eval():
             regularization += self.c1 * affinity
-        if self.c2:
+        if self.c2.eval():
             regularization += self.c2 * (1-balance)
-        if self.c3:
+        if self.c3.eval():
             regularization += self.c3 * coactivity
-        if self.c4:
+        if self.c4.eval():
             regularization += K.sum(self.c4 * K.square(Z))
             #regularization += K.sum(self.c4 * K.square(Z_bar))
 
@@ -105,13 +105,13 @@ class AcolRegularizerNull(Regularizer):
         balance = K.mean(partials[1])
         coactivity = K.mean(partials[1])
 
-        if self.c1:
+        if self.c1.eval():
             regularization += self.c1 * affinity
-        if self.c2:
+        if self.c2.eval():
             regularization += self.c2 * (1-balance)
-        if self.c3:
+        if self.c3.eval():
             regularization += self.c3 * coactivity
-        if self.c4:
+        if self.c4.eval():
             regularization += K.sum(self.c4 * K.square(Z))
             #regularization += K.sum(self.c4 * K.square(Z_bar))
 
@@ -142,9 +142,9 @@ def identity_hvstacked(shape, scale=1, name=None, dim_ordering='th'):
 
 def calculate_partial_affinity_balance(i, U, k, balance_type):
     U_partial = U[:,i,:,i]
-    if balance_type == 3:
+    if balance_type.eval() == 3:
         v = Diag(U_partial).reshape((1,k))
-    elif balance_type == 4:
+    elif balance_type.eval() == 4:
         v = K.sum(U_partial, axis=0).reshape((1,k))
     V = K.dot(v.T, v)
     affinity = (K.sum(U_partial) - Tr(U_partial))/((k-1)*Tr(U_partial))
