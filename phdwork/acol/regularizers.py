@@ -90,20 +90,42 @@ class AcolRegularizerNull(Regularizer):
     def __call__(self, x):
         regularization = 0
         Z = x
-        n = K.int_shape(Z)[1]
-        mask = column_vstacked((n, self.k))
+        n = K.shape(Z)[1]
 
-        Z_bar = K.dot(Z * K.cast(Z>0., K.floatx()), mask)
-        U = K.dot(Z_bar.T, Z_bar)
+        mask = identity_hvstacked((K.int_shape(Z)[1], self.k))
+
+        Z_bar = Z * K.cast(Z>0., K.floatx())
+        U = K.dot(Z_bar.T, Z_bar) * mask
+
         if self.balance_type == 3:
-            v = Diag(U).reshape((1, self.k))
+            v = Diag(U).reshape((1, n))
         elif self.balance_type == 4:
-            v = K.sum(Z_bar, axis=0).reshape((1, self.k))
-        V = K.dot(v.T, v)
+            v = K.sum(Z_bar, axis=0).reshape((1, n))
+        #V = K.dot(v.T, v)
+        V = K.dot(v.T, v) * mask
 
-        affinity = (K.sum(U) - Tr(U))/((self.k - 1) * Tr(U))
-        balance = (K.sum(V) - Tr(V))/((self.k - 1) * Tr(V))
-        coactivity = balance #K.sum(U) - Tr(U)
+        affinity = (K.sum(U) - Tr(U))/((self.k-1)*Tr(U))
+        #balance = (K.sum(V) - Tr(V))/((n-1)*Tr(V))
+        balance = (K.sum(V) - Tr(V))/((self.k-1)*Tr(V))
+        coactivity = K.sum(U) - Tr(U)
+
+
+        #n = K.int_shape(Z)[1]
+        #mask = column_vstacked((n, self.k))
+
+        #Z_bar = K.dot(Z * K.cast(Z>0., K.floatx()), mask)
+        #U = K.dot(Z_bar.T, Z_bar)
+        #if self.balance_type == 3:
+        #    v = Diag(U).reshape((1, self.k))
+        #elif self.balance_type == 4:
+        #    v = K.sum(Z_bar, axis=0).reshape((1, self.k))
+        #V = K.dot(v.T, v)
+
+        #affinity = (K.sum(U) - Tr(U))/((self.k - 1) * Tr(U))
+        #balance = (K.sum(V) - Tr(V))/((self.k - 1) * Tr(V))
+        #coactivity = balance #K.sum(U) - Tr(U)
+
+
 
         #Z_bar = K.reshape(Z * K.cast(Z>0., K.floatx()), (-1, self.k, n//self.k))
         #U = Tensordot(Z_bar, Z_bar, axes=[0,0])
