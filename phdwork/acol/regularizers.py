@@ -93,7 +93,7 @@ class AcolRegularizerNull(Regularizer):
         n = K.int_shape(Z)[1]
         mask = column_vstacked((n, self.k))
 
-        Z_bar = K.dot(Z_bar, mask)
+        Z_bar = K.dot(Z * K.cast(Z>0., K.floatx()), mask)
         U = K.dot(Z_bar.T, Z_bar)
         if self.balance_type == 3:
             v = Diag(U).reshape((1, self.k))
