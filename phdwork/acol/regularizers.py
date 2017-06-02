@@ -45,7 +45,7 @@ class AcolRegularizer(Regularizer):
 
         affinity = (K.sum(U) - Tr(U))/((n-1)*Tr(U))
         balance = (K.sum(V) - Tr(V))/((n-1)*Tr(V))
-        coactivity = 0. #K.sum(U) - Tr(U)
+        coactivity = balance #K.sum(U) - Tr(U)
 
         if self.c1:
             regularization += self.c1 * affinity
