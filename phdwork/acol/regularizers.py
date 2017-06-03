@@ -90,52 +90,56 @@ class AcolRegularizerNull(Regularizer):
     def __call__(self, x):
         regularization = 0
         Z = x
-        n = K.shape(Z)[1]
 
-        mask = identity_hvstacked((K.int_shape(Z)[1], self.k))
+        if self.balance_type < 5:
 
-        Z_bar = Z * K.cast(Z>0., K.floatx())
-        U = K.dot(Z_bar.T, Z_bar) * mask
+            n = K.shape(Z)[1]
 
-        if self.balance_type == 3:
-            v = Diag(U).reshape((1, n))
-        elif self.balance_type == 4:
-            v = K.sum(Z_bar, axis=0).reshape((1, n))
-        V = K.dot(v.T, v)
-        #V = K.dot(v.T, v) * mask
+            mask = identity_hvstacked((K.int_shape(Z)[1], self.k))
 
-        affinity = (K.sum(U) - Tr(U))/((self.k-1)*Tr(U))
-        balance = (K.sum(V) - Tr(V))/((n-1)*Tr(V))
-        #balance = (K.sum(V) - Tr(V))/((self.k-1)*Tr(V))
-        coactivity = K.sum(U) - Tr(U)
+            Z_bar = Z * K.cast(Z>0., K.floatx())
+            U = K.dot(Z_bar.T, Z_bar) * mask
 
+            if self.balance_type == 3:
+                v = Diag(U).reshape((1, n))
+            elif self.balance_type == 4:
+                v = K.sum(Z_bar, axis=0).reshape((1, n))
+            V = K.dot(v.T, v)
+            V = K.dot(v.T, v) * mask
 
-        #n = K.int_shape(Z)[1]
-        #mask = column_vstacked((n, self.k))
+            affinity = (K.sum(U) - Tr(U))/((self.k-1)*Tr(U))
+            balance = (K.sum(V) - Tr(V))/((n-1)*Tr(V))
+            balance = (K.sum(V) - Tr(V))/((self.k-1)*Tr(V))
+            coactivity = K.sum(U) - Tr(U)
 
-        #Z_bar = K.dot(Z * K.cast(Z>0., K.floatx()), mask)
-        #U = K.dot(Z_bar.T, Z_bar)
-        #if self.balance_type == 3:
-        #    v = Diag(U).reshape((1, self.k))
-        #elif self.balance_type == 4:
-        #    v = K.sum(Z_bar, axis=0).reshape((1, self.k))
-        #V = K.dot(v.T, v)
+        elif self.balance_type < 7:
 
-        #affinity = (K.sum(U) - Tr(U))/((self.k - 1) * Tr(U))
-        #balance = (K.sum(V) - Tr(V))/((self.k - 1) * Tr(V))
-        #coactivity = balance #K.sum(U) - Tr(U)
+            n = K.int_shape(Z)[1]
+            mask = column_vstacked((n, self.k))
 
+            Z_bar = K.dot(Z * K.cast(Z>0., K.floatx()), mask)
+            U = K.dot(Z_bar.T, Z_bar)
+            if self.balance_type == 5:
+                v = Diag(U).reshape((1, self.k))
+            elif self.balance_type == 6:
+                v = K.sum(Z_bar, axis=0).reshape((1, self.k))
+            V = K.dot(v.T, v)
 
+            affinity = (K.sum(U) - Tr(U))/((self.k - 1) * Tr(U))
+            balance = (K.sum(V) - Tr(V))/((self.k - 1) * Tr(V))
+            coactivity = balance #K.sum(U) - Tr(U)
 
-        #Z_bar = K.reshape(Z * K.cast(Z>0., K.floatx()), (-1, self.k, n//self.k))
-        #U = Tensordot(Z_bar, Z_bar, axes=[0,0])
+        elif self.balance_type < 9:
 
-        #partials, _  = Scan(calculate_partial_affinity_balance,
-        #               sequences=[Arange(U.shape[1])], non_sequences = [U, self.k, self.balance_type])
+            Z_bar = K.reshape(Z * K.cast(Z>0., K.floatx()), (-1, self.k, n//self.k))
+            U = Tensordot(Z_bar, Z_bar, axes=[0,0])
 
-        #affinity = K.mean(partials[0])
-        #balance = K.mean(partials[1])
-        #coactivity = K.mean(partials[1])
+            partials, _  = Scan(calculate_partial_affinity_balance,
+                           sequences=[Arange(U.shape[1])], non_sequences = [U, self.k, self.balance_type])
+
+            affinity = K.mean(partials[0])
+            balance = K.mean(partials[1])
+            coactivity = K.mean(partials[1])
 
         regularization += self.c1 * affinity
         regularization += self.c2 * (1-balance)
@@ -170,9 +174,9 @@ def identity_hvstacked(shape, scale=1, name=None, dim_ordering='th'):
 
 def calculate_partial_affinity_balance(i, U, k, balance_type):
     U_partial = U[:,i,:,i]
-    if balance_type.eval() == 3:
+    if balance_type.eval() == 7:
         v = Diag(U_partial).reshape((1,k))
-    elif balance_type.eval() == 4:
+    elif balance_type.eval() == 8:
         v = K.sum(U_partial, axis=0).reshape((1,k))
     V = K.dot(v.T, v)
     affinity = (K.sum(U_partial) - Tr(U_partial))/((k-1)*Tr(U_partial))
