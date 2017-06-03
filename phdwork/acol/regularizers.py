@@ -131,6 +131,7 @@ class AcolRegularizerNull(Regularizer):
 
         elif self.balance_type < 9:
 
+            n = K.shape(Z)[1]
             Z_bar = K.reshape(Z * K.cast(Z>0., K.floatx()), (-1, self.k, n//self.k))
             U = Tensordot(Z_bar, Z_bar, axes=[0,0])
 
