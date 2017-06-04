@@ -48,11 +48,15 @@ class AcolRegularizer(Regularizer):
         balance = (K.sum(V) - Tr(V))/((n - 1) * Tr(V))
         coactivity = balance #K.sum(U) - Tr(U)
 
-        regularization += self.c1 * affinity
-        regularization += self.c2 * (1 - balance)
-        regularization += self.c3 * coactivity
-        regularization += K.sum(self.c4 * K.square(Z))
-        #regularization += K.sum(self.c4 * K.square(Z_bar))
+        if self.c1.get_value():
+            regularization += self.c1 * affinity
+        if self.c2.get_value():
+            regularization += self.c2 * (1-balance)
+        if self.c3.get_value():
+            regularization += self.c3 * coactivity
+        if self.c4.get_value():
+            regularization += K.sum(self.c4 * K.square(Z))
+            #regularization += K.sum(self.c4 * K.square(Z_bar))
 
         self.affinity = affinity
         self.balance = balance
@@ -63,10 +67,10 @@ class AcolRegularizer(Regularizer):
 
     def get_config(self):
         return {'name': self.__class__.__name__,
-                'c1': K.cast_to_floatx(self.c1.eval()),
-                'c2': K.cast_to_floatx(self.c2.eval()),
-                'c3': K.cast_to_floatx(self.c3.eval()),
-                'c4': K.cast_to_floatx(self.c4.eval())}
+                'c1': self.c1.get_value(),
+                'c2': self.c2.get_value(),
+                'c3': self.c3.get_value(),
+                'c4': self.c4.get_value()}
 
 
 class AcolRegularizerNull(Regularizer):
@@ -142,11 +146,15 @@ class AcolRegularizerNull(Regularizer):
             balance = K.mean(partials[1])
             coactivity = K.mean(partials[1])
 
-        regularization += self.c1 * affinity
-        regularization += self.c2 * (1-balance)
-        regularization += self.c3 * coactivity
-        regularization += K.sum(self.c4 * K.square(Z))
-        #regularization += K.sum(self.c4 * K.square(Z_bar))
+        if self.c1.get_value():
+            regularization += self.c1 * affinity
+        if self.c2.get_value():
+            regularization += self.c2 * (1-balance)
+        if self.c3.get_value():
+            regularization += self.c3 * coactivity
+        if self.c4.get_value():
+            regularization += K.sum(self.c4 * K.square(Z))
+            #regularization += K.sum(self.c4 * K.square(Z_bar))
 
         self.affinity = affinity
         self.balance = balance
@@ -157,10 +165,10 @@ class AcolRegularizerNull(Regularizer):
 
     def get_config(self):
         return {'name': self.__class__.__name__,
-                'c1': K.cast_to_floatx(self.c1.eval()),
-                'c2': K.cast_to_floatx(self.c2.eval()),
-                'c3': K.cast_to_floatx(self.c3.eval()),
-                'c4': K.cast_to_floatx(self.c4.eval())}
+                'c1': self.c1.get_value(),
+                'c2': self.c2.get_value(),
+                'c3': self.c3.get_value(),
+                'c4': self.c4.get_value()}
 
 
 def identity_hvstacked(shape, scale=1, name=None, dim_ordering='th'):
