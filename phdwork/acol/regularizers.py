@@ -31,7 +31,7 @@ class AcolRegularizer(Regularizer):
         self.balance_type = balance_type
 
     def __call__(self, x):
-        regularization = 0
+        regularization = K.variable(0, dtype=K.floatx())
         Z = x
         n = K.shape(Z)[1]
 
@@ -44,8 +44,8 @@ class AcolRegularizer(Regularizer):
             v = K.sum(Z_bar, axis=0).reshape((1, n))
         V = K.dot(v.T, v)
 
-        affinity = (K.sum(U) - Tr(U))/((n - 1) * Tr(U))
-        balance = (K.sum(V) - Tr(V))/((n - 1) * Tr(V))
+        affinity = (K.sum(U) - Tr(U))/((n - 1) * Tr(U) + K.epsilon())
+        balance = (K.sum(V) - Tr(V))/((n - 1) * Tr(V) + K.epsilon())
         coactivity = balance #K.sum(U) - Tr(U)
 
         if self.c1.get_value():
@@ -92,7 +92,7 @@ class AcolRegularizerNull(Regularizer):
         self.balance_type = balance_type
 
     def __call__(self, x):
-        regularization = 0
+        regularization = K.variable(0, dtype=K.floatx())
         Z = x
 
         if self.balance_type < 5:
@@ -111,9 +111,8 @@ class AcolRegularizerNull(Regularizer):
             V = K.dot(v.T, v)
             V = K.dot(v.T, v) * mask
 
-            affinity = (K.sum(U) - Tr(U))/((self.k-1)*Tr(U))
-            balance = (K.sum(V) - Tr(V))/((n-1)*Tr(V))
-            balance = (K.sum(V) - Tr(V))/((self.k-1)*Tr(V))
+            affinity = (K.sum(U) - Tr(U))/((self.k-1)*Tr(U) + K.epsilon())
+            balance = (K.sum(V) - Tr(V))/((self.k-1)*Tr(V) + K.epsilon())
             coactivity = K.sum(U) - Tr(U)
 
         elif self.balance_type < 7:
@@ -129,8 +128,8 @@ class AcolRegularizerNull(Regularizer):
                 v = K.sum(Z_bar, axis=0).reshape((1, self.k))
             V = K.dot(v.T, v)
 
-            affinity = (K.sum(U) - Tr(U))/((self.k - 1) * Tr(U))
-            balance = (K.sum(V) - Tr(V))/((self.k - 1) * Tr(V))
+            affinity = (K.sum(U) - Tr(U))/((self.k - 1) * Tr(U) + K.epsilon())
+            balance = (K.sum(V) - Tr(V))/((self.k - 1) * Tr(V) + K.epsilon())
             coactivity = balance #K.sum(U) - Tr(U)
 
         elif self.balance_type < 9:
@@ -188,8 +187,8 @@ def calculate_partial_affinity_balance(i, U, k, balance_type):
     elif balance_type.eval() == 8:
         v = K.sum(U_partial, axis=0).reshape((1,k))
     V = K.dot(v.T, v)
-    affinity = (K.sum(U_partial) - Tr(U_partial))/((k-1)*Tr(U_partial))
-    balance = (K.sum(V) - Tr(V))/((k-1)*Tr(V))
+    affinity = (K.sum(U_partial) - Tr(U_partial))/((k-1)*Tr(U_partial) + K.epsilon())
+    balance = (K.sum(V) - Tr(V))/((k-1)*Tr(V) + K.epsilon())
     return affinity, balance
 
 # Aliases.
