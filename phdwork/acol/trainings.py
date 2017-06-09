@@ -50,9 +50,9 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
 
         #dummy validatation
         if validation_set_size is None:
-            validation_set_ind = range(len(X_train[0]))
+            validation_set_ind = range(len(X_train))
         else:
-            validation_set_ind = np.random.permutation(len(X_train[0]))[0:validation_set_size]
+            validation_set_ind = np.random.permutation(len(X_train))[0:validation_set_size]
 
         #extend each list for each rerun
         for item in metrics.itervalues():
@@ -201,9 +201,9 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
 
         #dummy validatation
         if validation_set_size is None:
-            validation_set_ind = range(len(X_train[0]))
+            validation_set_ind = range(len(X_train))
         else:
-            validation_set_ind = np.random.permutation(len(X_train[0]))[0:validation_set_size]
+            validation_set_ind = np.random.permutation(len(X_train))[0:validation_set_size]
 
         #extend each list for each rerun
         for item in metrics.itervalues():
