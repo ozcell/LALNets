@@ -11,7 +11,7 @@ from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.constraints import maxnorm
 
 from phdwork.acol.layers.pooling import AveragePooling, MaxPooling
-from phdwork.acol.regularizers import activity_acol, activity_acol_null
+from phdwork.acol.regularizers import activity_acol, activity_acol_null, activity_acol_for_dropout
 
 
 def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden_drop = True,
