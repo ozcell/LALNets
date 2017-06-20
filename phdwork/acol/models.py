@@ -115,7 +115,9 @@ def define_mlp(input_shape, nb_classes, mlp_params=(3, 2048), other_params=(0., 
         if hidden_drop and p_hl:
             model.add(Dropout(p_hl))
 
-    if balance_type < 3:
+    if balance_type == 0:
+        model.add(Dense(nb_classes*K, activity_regularizer=activity_acol_for_dropout(c1), name='L-1'))
+    elif balance_type < 3:
         model.add(Dense(nb_classes*K, activity_regularizer=activity_acol(c1, c2, c3, c4, balance_type), name='L-1'))
     else:
         model.add(Dense(nb_classes*K, activity_regularizer=activity_acol_null(c1, c2, c3, c4, K, balance_type), name='L-1'))

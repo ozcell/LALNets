@@ -170,6 +170,31 @@ class AcolRegularizerNull(Regularizer):
                 'c4': self.c4.get_value()}
 
 
+class AcolRegularizerForDropout(Regularizer):
+    """Regularizer for ACOL.
+
+    # Arguments
+        c1: Float; affinity factor
+    """
+
+    def __init__(self, c1=0.):
+        self.c1 = K.variable(c1)
+
+    def __call__(self, x):
+        regularization = K.variable(0, dtype=K.floatx())
+        Z = x
+        Z_bar = Z * K.cast(Z>0., K.floatx())
+
+        if self.c1.get_value():
+            regularization += self.c1 * K.sum(Range(Z_bar, axis=0))
+
+        self.affinity = regularization
+        self.balance = regularization
+        self.coactivity = regularization
+        self.reg = regularization
+
+        return regularization
+
 def identity_hvstacked(shape, scale=1, name=None, dim_ordering='th'):
     scale = shape[1]/float(shape[0])
     a = np.identity(int(1/scale))
@@ -198,6 +223,9 @@ def activity_acol(c1=1., c2=1., c3=0., c4=0.000001, balance_type=1):
 
 def activity_acol_null(c1=1., c2=1., c3=0., c4=0.000001, k=1, balance_type=3):
     return AcolRegularizerNull(c1=c1, c2=c2, c3=c3, c4=c4, k=k, balance_type=balance_type)
+
+def activity_acol_for_dropout(c1=0.00001):
+    return AcolRegularizerForDropout(c1=c1)
 
 def get(identifier, kwargs=None):
     return get_from_module(identifier, globals(), 'regularizer',
