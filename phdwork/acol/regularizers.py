@@ -35,7 +35,7 @@ class AcolRegularizer(Regularizer):
         Z = x
         n = K.shape(Z)[1]
 
-        Z_bar = Z * K.cast(x>0., K.floatx())
+        Z_bar = Z * K.cast(Z>0., K.floatx())
         U = K.dot(Z_bar.T, Z_bar)
 
         if self.balance_type == 1:
