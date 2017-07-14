@@ -30,7 +30,7 @@ def train_with_parents(nb_parents, nb_clusters_per_parent,
         Y_test_parent = np_utils.to_categorical(y_test_parent, nb_parents)
 
     if nb_dpoints:
-        nb_epoch_per_dpoint = nb_epoch[0]/nb_dpoints
+        nb_epoch_per_dpoint = nb_epoch/nb_dpoints
     else:
         nb_epoch_per_dpoint = 0
 
