@@ -8,5 +8,5 @@ setup(name='lalnets',
       author='Ozsel Kilinc',
       author_email='ozselkilinc@gmail.com',
       install_requires = ['keras==1.2.1',
-                          'pandas==0.18.1'],
+                          'sklearn, pandas, numpy, scify, matplotlib],
       packages=find_packages())
