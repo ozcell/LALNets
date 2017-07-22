@@ -3,7 +3,7 @@ import numpy as np
 from keras import backend as K
 from keras.regularizers import Regularizer
 from keras.utils.generic_utils import get_from_module
-from phdwork.acol.initializations import column_vstacked
+from lalnets.acol.initializations import column_vstacked
 import warnings
 
 Tr = K.theano.tensor.nlinalg.trace

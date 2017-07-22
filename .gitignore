@@ -7,7 +7,7 @@ build/*
 docs/site/*
 docs/theme/*
 tags
-phdwork.egg-info
+lalnets.egg-info
 
 # test-related
 .coverage

@@ -1,6 +1,6 @@
 from keras.datasets import mnist
 from sklearn.datasets import fetch_rcv1
-from phdwork.metagenome.preprocessing import *
+from lalnets.metagenome.preprocessing import *
 
 import numpy as np
 import scipy.io as sio

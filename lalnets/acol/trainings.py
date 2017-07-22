@@ -3,7 +3,7 @@ import time
 from keras import backend as K
 from keras.engine import Model
 from keras.utils import np_utils, generic_utils
-from phdwork.commons.utils import calculate_cl_acc, cumulate_metrics, choose_samples
+from lalnets.commons.utils import calculate_cl_acc, cumulate_metrics, choose_samples
 
 '''
 
