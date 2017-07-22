@@ -168,7 +168,7 @@ def load_sar11(loc):
     df.sample_id = sample_id_num
 
     sample_id_map_short = np.copy(sample_id_map)
-    for i in range(nb_samples):
+    for i in range(len(nb_samples)):
         sample_id_map_short[i] = sample_id_map[i][6:-8]
     sample_id_map = sample_id_map_short
 
