@@ -7,5 +7,6 @@ setup(name='lalnets',
       description='Ozsel Kilinc LALNets',
       author='Ozsel Kilinc',
       author_email='ozselkilinc@gmail.com',
-      install_requires = ['keras==1.2.1'],
+      install_requires = ['keras==1.2.1',
+                          'pandas==0.18.1'],
       packages=find_packages())
