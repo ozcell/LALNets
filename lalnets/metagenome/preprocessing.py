@@ -49,7 +49,20 @@ def get_pseudo_labels_mini(df, nb_metagenomes=75, miniseqs_size=100, nb_pseudos=
             count += 1
         print("Progress {:2.2%}".format((count)/float(nb_metagenomes*nb_pseudos)), end="\r")
 
-    return X
+    np.random.shuffle(X)
+
+    X_train = X[:,:,[3,4]].reshape(X.shape[0], X.shape[1]*2)
+    X_train = X_train.astype('float32')
+
+    #normalize the input
+    X_train = (X_train)/21.
+    X_train -= X_train.mean(axis=0)
+    X_train /= X_train.std(axis=0)
+
+    y_train = X[:,0,1].astype('int')
+    sample_ids = X[:,0,0].astype('int')
+
+    return X_train, y_train, sample_ids 
 
 
 def get_parent_labels_wrt_gene_call(df, nb_metagenomes=75):
