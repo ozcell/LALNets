@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 
 setup(name='lalnets',
-      version='0.1.2',
+      version='0.1.3',
       description='Ozsel Kilinc LALNets',
       author='Ozsel Kilinc',
       author_email='ozselkilinc@gmail.com',
