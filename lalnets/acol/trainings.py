@@ -535,10 +535,10 @@ def train_pre(nb_pseudos,
                             train_on_original_only=False, verbose=verbose)
 
         #get ACOL metrics, affinity, balance, coactivity and regularization cost
-        acol_metrics = cumulate_metrics(X_train_labeled, get_metrics, batch_size)
+        #acol_metrics = cumulate_metrics(X_train_labeled, get_metrics, batch_size)
 
         #print stats
-        print_stats(verbose, 5, acol_metrics=acol_metrics)
+        #print_stats(verbose, 5, acol_metrics=acol_metrics)
 
         return model, X_train_labeled
 
