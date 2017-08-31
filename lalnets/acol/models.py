@@ -70,7 +70,9 @@ def define_cnn(input_shape, nb_classes, cnn_type=1, conv_params=(32,3,2), hidden
         model.add(Dense(4096, activation='relu'))
     model.add(Dropout(0.5)) if hidden_drop else model.add(Dropout(0.))
 
-    if balance_type < 3:
+    if balance_type == 0:
+        model.add(Dense(nb_classes*K, activity_regularizer=activity_acol_for_dropout(c1), name='L-1'))
+    elif balance_type < 3:
         model.add(Dense(nb_classes*K, activity_regularizer=activity_acol(c1, c2, c3, c4, balance_type), name='L-1'))
     else:
         model.add(Dense(nb_classes*K, activity_regularizer=activity_acol_null(c1, c2, c3, c4, K, balance_type), name='L-1'))
