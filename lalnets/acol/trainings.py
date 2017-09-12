@@ -183,7 +183,10 @@ def train_with_pseudos(nb_pseudos, nb_clusters_per_pseudo,
     #find the values of the dependent variables used inside the script
     nb_all_clusters = nb_pseudos*nb_clusters_per_pseudo
 
-    nb_epoch_per_dpoint = nb_epoch/nb_dpoints
+    if nb_dpoints:
+        nb_epoch_per_dpoint = nb_epoch/nb_dpoints
+    else:
+        nb_epoch_per_dpoint = 0
 
     metrics = initialize_metrics()
 
