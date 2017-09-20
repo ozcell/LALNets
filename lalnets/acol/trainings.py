@@ -690,6 +690,60 @@ def pseudo_batch_generator_supervised(X, y, nb_classes, nb_pseudos, batch_size, 
         yield X_batch, Y_batch
 
 
+# def pseudo_batch_generator(X, nb_pseudos, batch_size, get_pseudos, original_only):
+#
+#     if type(X) is not tuple:
+#         X =  (X, )
+#         if type(batch_size) is not tuple:
+#             batch_size = (batch_size, 0)
+#         else:
+#             batch_size = (sum(batch_size), 0)
+#
+#     #initialize shuffled ind
+#     if original_only:
+#         ind = np.random.permutation(len(X[0]))
+#     else:
+#         ind = np.random.permutation(nb_pseudos*len(X[0]))
+#
+#     for ind_batch_start in range(0, len(ind), batch_size[0]):
+#
+#         #if the last batch then the size is the number of remaining samples
+#         if ind_batch_start+batch_size[0] > len(ind):
+#             ind_batch = ind[ind_batch_start::]
+#         else:
+#             ind_batch = ind[ind_batch_start:ind_batch_start+batch_size[0]]
+#
+#         #ind_batch%len(X[0]) --> which sample
+#         #ind_batch/len(X[0]) --> which pseudo label
+#
+#         perm = np.random.permutation
+#         conc = np.concatenate
+#         #take a batch of X depending of the remainder
+#         if batch_size[1]:
+#             X_batch = conc((X[0][ind_batch%len(X[0]), ],
+#                             X[1][perm(len(X[1]))[0:batch_size[1]], ]), axis=0)
+#         else:
+#             X_batch = X[0][ind_batch%len(X[0]), ]
+#
+#         #create pseudo labels
+#         if original_only:
+#             y_batch = np.zeros(len(ind_batch)+batch_size[1])                    #create all zeros output labels
+#         else:
+#             y_batch = conc((ind_batch/len(X[0]),                                #create suffled eqaully distributed
+#                       perm(batch_size[1])%nb_pseudos))                          #labels with values 0 to nb_pseudos
+#
+#         #in case if nb_pseudos=1 to support null_node
+#         if nb_pseudos > 1:
+#             Y_batch = np_utils.to_categorical(y_batch, nb_pseudos)
+#         else:
+#             Y_batch = np_utils.to_categorical(y_batch, nb_pseudos+1)
+#
+#         #transform X[0] according to pseudo labels
+#         for pseudo in range(nb_pseudos):
+#             X_batch[y_batch==pseudo,] = get_pseudos(X_batch[y_batch==pseudo,], pseudo)
+#
+#         yield X_batch, Y_batch
+
 def pseudo_batch_generator(X, nb_pseudos, batch_size, get_pseudos, original_only):
 
     if type(X) is not tuple:
@@ -703,7 +757,7 @@ def pseudo_batch_generator(X, nb_pseudos, batch_size, get_pseudos, original_only
     if original_only:
         ind = np.random.permutation(len(X[0]))
     else:
-        ind = np.random.permutation(nb_pseudos*len(X[0]))
+        ind = np.random.permutation(len(X[0]))
 
     for ind_batch_start in range(0, len(ind), batch_size[0]):
 
@@ -718,6 +772,7 @@ def pseudo_batch_generator(X, nb_pseudos, batch_size, get_pseudos, original_only
 
         perm = np.random.permutation
         conc = np.concatenate
+        rand = np.random.randint
         #take a batch of X depending of the remainder
         if batch_size[1]:
             X_batch = conc((X[0][ind_batch%len(X[0]), ],
@@ -729,7 +784,7 @@ def pseudo_batch_generator(X, nb_pseudos, batch_size, get_pseudos, original_only
         if original_only:
             y_batch = np.zeros(len(ind_batch)+batch_size[1])                    #create all zeros output labels
         else:
-            y_batch = conc((ind_batch/len(X[0]),                                #create suffled eqaully distributed
+            y_batch = conc((rand(0, nb_pseudos, len(ind_batch)),                #create suffled eqaully distributed
                       perm(batch_size[1])%nb_pseudos))                          #labels with values 0 to nb_pseudos
 
         #in case if nb_pseudos=1 to support null_node
