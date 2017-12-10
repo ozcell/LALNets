@@ -191,7 +191,7 @@ class AcolRegularizerForDropout(Regularizer):
         self.affinity = 0.#regularization
         self.balance = 0.#regularization
         self.coactivity = 0.#regularization
-        self.reg = regularization
+        self.reg = 0.#regularization
 
         return regularization
 
