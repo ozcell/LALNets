@@ -188,10 +188,10 @@ class AcolRegularizerForDropout(Regularizer):
         if self.c1.get_value():
             regularization += self.c1 * K.sum(Range(Z_bar, axis=0))
 
-        self.affinity = 0.#regularization
-        self.balance = 0.#regularization
-        self.coactivity = 0.#regularization
-        self.reg = 0.#regularization
+        self.affinity = regularization
+        self.balance = regularization
+        self.coactivity = regularization
+        self.reg = regularization
 
         return regularization
 
@@ -213,10 +213,10 @@ class AcolRegularizerDummy(Regularizer):
         #if self.c1.get_value():
         #    regularization += self.c1 * K.sum(Range(Z_bar, axis=0))
 
-        self.affinity = regularization
-        self.balance = regularization
-        self.coactivity = regularization
-        self.reg = regularization
+        self.affinity = 0.#regularization
+        self.balance = 0.#regularization
+        self.coactivity = 0.#regularization
+        self.reg = 0.#regularization
 
         return regularization
 
