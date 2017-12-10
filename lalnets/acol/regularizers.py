@@ -206,7 +206,7 @@ class AcolRegularizerDummy(Regularizer):
         self.c1 = K.variable(c1)
 
     def __call__(self, x):
-        regularization = 0#K.variable(0, dtype=K.floatx())
+        regularization = K.variable(0, dtype=K.floatx())
         #Z = x
         #Z_bar = Z * K.cast(Z>0., K.floatx())
 
