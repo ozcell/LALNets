@@ -183,3 +183,18 @@ for exp in range(nb_exp):
     
     np.save(save_to_path + 'est_train.npy', est_train)
     np.save(save_to_path + 'output_pca_train.npy', output_pca_train)
+    
+nb_clusters=10
+
+acc_output = []
+nmi_output = []
+for i in range(len(output_test)):
+    estimator = KMeans(init='k-means++', n_clusters=nb_clusters, n_init=nb_clusters)
+    estimator.fit(output_test[i])
+    acc_output.append(calculate_cl_acc(y_test, estimator.labels_,10,label_correction=True)[0])
+    nmi_output.append(nmi(y_test, estimator.labels_))
+    
+np.save(save_to_path + 'cl_vacc.npy', acc_output)
+np.save(save_to_path + 'cl_nmi.npy', nmi_output)
+
+np.save(save_to_path + 'output_test.npy', output_test)
