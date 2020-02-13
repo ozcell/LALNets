@@ -75,9 +75,10 @@ c1 = 3. #c_alpha
 c2 = 1. #c_beta
 c3 = 0.
 c4 = 0.000001 #c_F
+balance_type = 1
 pooling = 'average'
 trainable = False
-acol_params = (nb_clusters_per_pseudo, p, c1, c2, c3, c4, pooling, trainable)
+acol_params = (nb_clusters_per_pseudo, p, c1, c2, c3, c4, balance_type, pooling, trainable)
 
 #define optimizer
 sgd = SGD(lr=0.01, decay=1e-6, momentum=0.95, nesterov=True)
